@@ -24,7 +24,12 @@ const OTP = require("../utils/otp");
 const createError=require("../utils/createError")
 const { decode } = require("jsonwebtoken");
 const fs=require("fs")
-const htmlContent_ofVrify=fs.readFileSync("../htmlEmails/verifyEmail.html","utf-8");
+const path = require('path');
+
+// تحديد المسار النسبي للملف
+const filePath = path.join(__dirname, '../public/verifyEmail.html');
+
+const htmlContent_ofVrify=fs.readFileSync(filePath,"utf-8");
 const verifyEmail =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
         let oldEmail = await member.findOne({ email });
