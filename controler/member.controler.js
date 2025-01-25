@@ -21,10 +21,12 @@ const sendEmail = require("../utils/sendEmail");
 // otp
 const OTP = require("../utils/otp");
 
+const strongPassword=require("../utils/strongPass");
 const createError=require("../utils/createError")
 const { decode } = require("jsonwebtoken");
 const fs=require("fs")
 const path = require('path');
+const strongPass = require("../utils/strongPass");
 
 // تحديد المسار النسبي للملف
 const filePath = path.join(__dirname, '../public/verifyEmail.html'); 
@@ -34,10 +36,16 @@ const register =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
         let oldEmail = await member.findOne({ email });
         if (oldEmail) {
-            console.log("old member", oldEmail);
+            // console.log("old member", oldEmail);
             const error=createError(400, httpStatusText.FAIL,"This email is already exist. Please log in or use a different email.")
             throw(error);
         }
+        const strong=await strongPassword(password);
+       if(strong.length!=0){
+        const error=createError(400, httpStatusText.FAIL,strong)
+        throw(error);
+       }
+        
 
         let hashedpass = await bcrypt.hashing(password);
         const newMember = new member({

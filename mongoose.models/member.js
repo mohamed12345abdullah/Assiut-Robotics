@@ -14,7 +14,7 @@ const memberSchema=new mongoose.Schema({
     password:{
         type:String,
         required:[true,"password is required"],
-        validate:[validator.isStrongPassword,"enter s strong password"]
+
     },
     committee:{
         type:String,
