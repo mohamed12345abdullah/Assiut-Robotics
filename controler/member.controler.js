@@ -31,6 +31,26 @@ const strongPass = require("../utils/strongPass");
 // تحديد المسار النسبي للملف
 const filePath = path.join(__dirname, '../public/verifyEmail.html'); 
 
+const test=async()=>{
+    console.log("updateeeeeeeeeeeeeeeeeeeeeeeee")
+    const members=await member.find();
+    members.forEach(async(memb)=>{
+        console.log("memberrr",memb)
+        memb.verified=true;
+        memb.role="member";
+        await memb.save()
+        console.log(memb)
+    })
+
+    
+
+ 
+} 
+// test().catch((error)=>{ 
+//     console.log("error",error);  
+    
+// })
+
 const htmlContent_ofVrify=fs.readFileSync(filePath,"utf-8");
 const register =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
@@ -118,7 +138,7 @@ const login =asyncWrapper( async (req, res) => {
         }
 
 
-        if (oldMember.role != "not accepted") {
+        if (oldMember.role == "not accepted") {
             const error=createError(400, httpStatusText.FAIL,"wait until your account be accepted")
             throw(error);
         } 
@@ -154,7 +174,7 @@ const verify =asyncWrapper( async (req, res) => {
         if (req.decoded) {
             const oldMember = await member.findOne({ email: req.decoded.email });
             if (oldMember) {
-                res.status(200).send({ message: "success authorization", data: req.decoded });
+                res.status(200).send({ message: "success authorization", data: oldMember });
             } else {
                 res.status(401).send({ message: " unauthorized" });
             }
