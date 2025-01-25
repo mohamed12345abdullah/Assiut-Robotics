@@ -30,14 +30,14 @@ const path = require('path');
 const filePath = path.join(__dirname, '../public/verifyEmail.html');
 
 const htmlContent_ofVrify=fs.readFileSync(filePath,"utf-8");
-const verifyEmail =asyncWrapper( async (req, res,next) => {
+const register =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
         let oldEmail = await member.findOne({ email });
-        if (oldEmail) {
-            console.log("old member", oldEmail);
-            const error=createError(400, httpStatusText.FAIL,"This email is already in use. Please log in or use a different email.")
-            throw(error);
-        }
+        // if (oldEmail) {
+        //     console.log("old member", oldEmail);
+        //     const error=createError(400, httpStatusText.FAIL,"This email is already in use. Please log in or use a different email.")
+        //     throw(error);
+        // }
 
         let hashedpass = await bcrypt.hashing(password);
         const newMember = new member({
@@ -50,7 +50,8 @@ const verifyEmail =asyncWrapper( async (req, res,next) => {
         })
         await newMember.save();
         const token = await jwt.generateToken({  email }, "10m");
-        const token_url=`https://assiut-robotics-website.vercel.app/members/createAccount/${token}`
+        // https://assiut-robotics-zeta.vercel.app/
+        const token_url=`https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
         console.log("req.body is : ", req.body);
         await sendEmail({
             email: email,
@@ -67,36 +68,18 @@ const verifyEmail =asyncWrapper( async (req, res,next) => {
 
 });
 
-const createAccount =asyncWrapper( async (req, res,next) => {
+const verifyEmail =asyncWrapper( async (req, res,next) => {
 
-        // console.log(req.body);
-        // console.log(req.file);
-        let { name, email, password, committee, gender, phoneNumber } = req.decoded;
-        let oldEmail = await member.findOne({ email });
-        console.log("old member", oldEmail);
-        if (oldEmail) {
-            console.log("old member", oldEmail);
-            const error=createError(400, httpStatusText.FAIL,"This email is already in use. Please log in or use a different email.")
-            throw(error);
-        }
+    
+        let { email } = req.decoded;
+        let existMember = await member.findOne({ email });
+        // console.log("old member", oldEmail);
+        existMember.verified=true;
+        await existMember.save();
+        const filePath = path.join(__dirname, '../public/response_of_verify.html');
 
-        let hashedpass = await bcrypt.hashing(password);
-        const newMember = new member({
-            name,
-            email,
-            password: hashedpass,
-            committee,
-            gender,
-            phoneNumber,
-            //avatar: req.file.filename
-        });
-
-        await newMember.save();
-        res.status(201).json({
-            status: httpStatusText.SUCCESS,
-            data: null,
-            message: "Your account has been successfully created. <br> wait until your request be accepted",
-        });
+        const htmlContent=fs.readFileSync(filePath,"utf-8");
+        res.status(201).end(htmlContent);
 
         // console.log(error.message);
         // res.status(400).json({
@@ -419,8 +402,8 @@ try {
 
 
 module.exports = {
+    register,
     verifyEmail,
-    createAccount,
     login,
     getAllMembers,
     verify,

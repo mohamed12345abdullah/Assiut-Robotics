@@ -50,29 +50,14 @@ app.use("*",(req,res,next)=>{
   res.status(404).json({status:404,message:"not found "});
 })
 
-//draft
-
-
-// app.use("/upload",memberRouter)
-// app.use("")
-//app.get("/", (req,res)=>{    
-   // res.end("server run successfully ")
-//})
 
  
 app.use((error, req, res ,next)=>{
-    res.status(500).json(  { status:httpStatusText.ERROR,
-                            message:Array(error)})
+    res.status(400).json(  { status:httpStatusText.ERROR,
+                            message:error.message})
 })
 
 
-// const multer  = require('multer')
-// const upload = multer({ dest: 'uploads/' })
-// app.post('/profile', upload.single('avatar'), function (req, res, next) {
-//     res.end('uploaded')
-//     // req.file is the `avatar` file
-//     // req.body will hold the text fields, if there were any
-//   })
 
 
 const OTP=require('./utils/otp');

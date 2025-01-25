@@ -71,11 +71,11 @@ const diskStorage = multer.diskStorage({
     });
     
 
-Router.route("/verifyEmail").post(memberControler.verifyEmail);
+Router.route("/register").post(memberControler.register);
 
-Router.route("/createAccount/:token").get(
+Router.route("/verifyEmail/:token").get(
         JWT.verify,
-        memberControler.createAccount
+        memberControler.verifyEmail
 );
 
 Router.route("/getAllMembers").get(memberControler.getAllMembers);

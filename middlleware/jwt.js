@@ -27,7 +27,7 @@ const verify = asyncWrapper(
         console.log("verify");
         
         const authHeader = req.headers["Authorization"] ||  req.headers["authorization"];
-        const token=authHeader.split(" ") [1]|| req.params.token;
+        const token= req.params.token||authHeader.split(" ") [1];
         console.log("token: ",token);
         if (!token) {
             throw(createError("token is required",httpStatusText.FAIL,400))
