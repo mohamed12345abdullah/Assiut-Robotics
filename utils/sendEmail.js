@@ -8,8 +8,8 @@ module.exports = async (param) => {
     secure: true, // Use `true` for port 465, `false` for all other ports
     // service:"gmail",
     auth: {
-      user: "abdullah68782325@gmail.com",
-      pass: "vlym gxgh vqut hbme",
+      user: "assiutrobotics@gmail.com",
+      pass: "ofhs ofew ulmg kkzq",
     },
   });
 
@@ -17,7 +17,7 @@ module.exports = async (param) => {
 
   // send mail with defined transport object
   const info = await transporter.sendMail({
-    from: 'mohamed12345abdullah@gmail.com', // sender address
+    from: 'assiutrobotics@gmail.com', // sender address
     to: param.email, // list of receivers
     subject: param.subject, // Subject line
     text: param.text, // plain text body

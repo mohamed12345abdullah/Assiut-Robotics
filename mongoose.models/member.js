@@ -31,7 +31,7 @@ const memberSchema=new mongoose.Schema({
     },
     role:{
         type:String,
-        default:"member"
+        default:"not accepted"
     },
     avatar:{
         type:String,

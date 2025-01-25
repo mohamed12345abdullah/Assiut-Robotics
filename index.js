@@ -93,6 +93,48 @@ const member = require('./mongoose.models/member');
     // console.log("sen req");
   // }, 3000);
 
+
+//   const XLSX = require("xlsx");
+//   const fs = require("fs");
+//  const axios =require("axios");
+  // // تحميل ملف Excel
+  // const url="https://docs.google.com/spreadsheets/d/18pOhTSqrmcUsXYE4hwodGGqSu_xZenRLHMPs-8c_tIc/export?format=xlsx"
+  // const response = await axios.get(url, { responseType: "arraybuffer" }); // تحميل الملف
+
+  // const workbook = XLSX.readFile(response,data);
+
+  // axios.get(url, { responseType: 'arraybuffer' })
+  // .then(response => {
+  //   const workbook = XLSX.read(response.data, { type: 'buffer' });
+  //   const sheetName = workbook.SheetNames[0];
+  //   const sheet = workbook.Sheets[sheetName];
+  //   const data = XLSX.utils.sheet_to_json(sheet);
+  //   console.log(data);
+  // })
+  // .catch(err => {
+  //   console.error("Error fetching Excel file: ", err);
+  // }); 
+
+  // const workbook = XLSX.read(response.data, { type: "buffer" });
+
+  // // اختيار الشيت الأول
+  // const sheetName = workbook.SheetNames[0]; 
+  // const sheet = workbook.Sheets[sheetName];
+  
+  // // تحويل البيانات إلى JSON
+  // const data = XLSX.utils.sheet_to_json(sheet);
+  
+  // console.log(data); // عرض البيانات
+  
+  // استخدام البيانات في السيرفر
+  // data.forEach((row) => {
+  //   console.log(row);
+  // });
+  
+
+
+
+
 app.listen(PORT,()=>{
     console.log("server is run and listen to port : ",`http://localhost:${PORT}/`); 
 })

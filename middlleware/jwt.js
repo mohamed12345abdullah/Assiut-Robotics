@@ -2,18 +2,16 @@ const jwt = require('jsonwebtoken');
 const createError=require("../utils/createError")
 const httpStatusText=require("../utils/httpStatusText")
 const asyncWrapper=require("../middlleware/asyncWrapper")
+const fs=require("fs")
+const path = require('path');
 
 const generateToken = async (payload, rememberMe) => {
 
     try {
-        // if(rememberMe){
-        // const token=await jwt.sign(payload, secret,{});
-        // console.log("remember me");
-        // return token;
-        // }else{
-        const token = await jwt.sign(payload, process.env.SECRET, { expiresIn: rememberMe || "2h" });
+  
+        const token = await jwt.sign(payload, process.env.SECRET, { expiresIn: rememberMe || "10h" });
         return token;
-        // }
+      
 
     } catch (error) {
         return createError(error.message,httpStatusText.FAIL,400);
@@ -21,9 +19,11 @@ const generateToken = async (payload, rememberMe) => {
 }
 
 
-const verify = asyncWrapper(
+const verify =
     async (req, res, next) => {
-    
+    try {
+        
+
         console.log("verify");
         
         const authHeader = req.headers["Authorization"] ||  req.headers["authorization"];
@@ -44,9 +44,15 @@ const verify = asyncWrapper(
                 // res.status(401).send({ message: "unauthorized" })
             }
         }
- 
+    } catch (error) {
+        const file_Path = path.join(__dirname, '../public/error.html');
 
-})
+        const html_Content=fs.readFileSync(file_Path,"utf-8");
+        res.status(201).end(html_Content.replace("{{error_message}}",error.message));
+    
+    }
+
+}
 
 module.exports = {
     generateToken,

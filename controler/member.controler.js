@@ -27,17 +27,17 @@ const fs=require("fs")
 const path = require('path');
 
 // تحديد المسار النسبي للملف
-const filePath = path.join(__dirname, '../public/verifyEmail.html');
+const filePath = path.join(__dirname, '../public/verifyEmail.html'); 
 
 const htmlContent_ofVrify=fs.readFileSync(filePath,"utf-8");
 const register =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
         let oldEmail = await member.findOne({ email });
-        // if (oldEmail) {
-        //     console.log("old member", oldEmail);
-        //     const error=createError(400, httpStatusText.FAIL,"This email is already in use. Please log in or use a different email.")
-        //     throw(error);
-        // }
+        if (oldEmail) {
+            console.log("old member", oldEmail);
+            const error=createError(400, httpStatusText.FAIL,"This email is already exist. Please log in or use a different email.")
+            throw(error);
+        }
 
         let hashedpass = await bcrypt.hashing(password);
         const newMember = new member({
@@ -70,7 +70,6 @@ const register =asyncWrapper( async (req, res,next) => {
 
 const verifyEmail =asyncWrapper( async (req, res,next) => {
 
-    
         let { email } = req.decoded;
         let existMember = await member.findOne({ email });
         // console.log("old member", oldEmail);
@@ -80,78 +79,56 @@ const verifyEmail =asyncWrapper( async (req, res,next) => {
 
         const htmlContent=fs.readFileSync(filePath,"utf-8");
         res.status(201).end(htmlContent);
-
-        // console.log(error.message);
-        // res.status(400).json({
-        //     status: httpStatusText.ERROR,
-        //     data: null,
-        //     message: error.message,
-        // });
-    
+   
 })
 
-const login = async (req, res) => {
-    try {
+const login =asyncWrapper( async (req, res) => {
+
         console.log("body", req.body);
         const { email, password, remember } = req.body;
         const oldMember = await member.findOne({ email });
-        if (oldMember) {
-            const truePass = await bcrypt.comparePassword(password, oldMember.password);
-            if (truePass) {
-                if (oldMember.role != 5) {
-                    const token = await jwt.generateToken(
-                        {
-                            name: oldMember.name,
-                            email: oldMember.email,
-                            phoneNumber: oldMember.phoneNumber,
-                            role: oldMember.role,
-                            committee: oldMember.committee,
-                            avatar: oldMember.avatar,
-                        },
-                        remember
-                    );
-                    // res.redirect("/index.html");
 
-                    res.status(200).json({
-                        status: httpStatusText.SUCCESS,
-                        data: {
-                            token: token,
-                        },
-                        message: "Your are logged in",
-                    });
-                } else {
-                    res.status(400).json({
-                        status: httpStatusText.FAIL,
-                        data: null,
-                        message:
-                            "Your account has been successfully created. <br> wait until your request be accepted",
-                    });
-                }
-            } else {
-                res.status(400).json({
-                    status: httpStatusText.FAIL,
-                    data: null,
-                    message: "wrong password",
-                });
-            }
-        } else {
-            res.status(404).json({
+        if (!oldMember) {
+            const error=createError(404, httpStatusText.FAIL,"User not Found")
+            throw(error);
+        }
+
+
+        if(!oldMember.verified){
+            res.status(400).json({
                 status: httpStatusText.FAIL,
-                message: "this user not found",
+                data: null,
+                message: "verify your email by click on the link on your email ",     
             });
         }
-    } catch (error) {
-        res.status(400).json({
-            status: httpStatusText.FAIL,
-            data: null,
-            message: error.message,
-            code: 400,
-        });
-    }
-};
 
-const getAllMembers = async (req, res) => {
-    try {
+
+        const truePass = await bcrypt.comparePassword(password, oldMember.password);
+        if (!truePass) {
+            const error=createError(400, httpStatusText.FAIL,"wrong password")
+            throw(error);
+        }
+
+
+        if (oldMember.role != "not accepted") {
+            const error=createError(400, httpStatusText.FAIL,"wait until your account be accepted")
+            throw(error);
+        } 
+
+
+        const token = await jwt.generateToken({ email},remember);
+            
+        res.status(200).json({
+            status: httpStatusText.SUCCESS,
+            data: {token: token},
+            message: "Your are logged in",
+        });
+
+    
+});
+
+const getAllMembers =asyncWrapper( async (req, res) => {
+ 
         let members = await member.find({}, { password: false });
 
         res.status(200).json({
@@ -161,16 +138,10 @@ const getAllMembers = async (req, res) => {
             },
             message: "get members successfully",
         });
-    } catch (error) {
-        res.status(400).json({
-            status: httpStatusText.FAIL,
-            data: null,
-            message: error.message,
-        });
-    }
-};
 
-const verify = async (req, res) => {
+});
+
+const verify =asyncWrapper( async (req, res) => {
     try {
         if (req.decoded) {
             const oldMember = await member.findOne({ email: req.decoded.email });
@@ -183,19 +154,11 @@ const verify = async (req, res) => {
     } catch (error) {
         res.status(401).send({ message: " unauthorized" });
     }
-};
-
-const confirm = async (req, res) => {
-    try {
-        const { id, role } = req.body;
-        if (role) {
-            await member.findByIdAndUpdate(id, { role });
-            res.status(200).json({
-                status: httpStatusText.SUCCESS,
-                data: null,
-                message: "confirmed",
-            });
-        } else {
+});
+// roles {"not accepted"}
+const confirm =asyncWrapper( async (req, res) => {
+        const { id, accepted } = req.body;
+        if(!accepted){
             await member.findByIdAndDelete(id);
             res.status(200).json({
                 status: httpStatusText.SUCCESS,
@@ -203,14 +166,22 @@ const confirm = async (req, res) => {
                 message: "deleted",
             });
         }
-    } catch (error) {
-        res.status(400).json({
-            status: httpStatusText.ERROR,
-            data: null,
-            message: error.message,
+        const Member=await member.findByIdAndUpdate(id, { role:"member" });
+        const filePath = path.join(__dirname, '../public/accepted.html');
+
+        const htmlContent=fs.readFileSync(filePath,"utf-8");
+        await sendEmail({
+            email: email,
+            subject: "accepted - Assiut Robotics Team",
+            text: "acception Email",
+            html:htmlContent.replace('{{name}}',Member.name)            ,
         });
-    }
-};
+        res.status(200).json({
+                status: httpStatusText.SUCCESS,
+                data: null,
+                message: " accpeted ",
+        });
+});
 
 const controleHR = async (req, res) => {
     try {
