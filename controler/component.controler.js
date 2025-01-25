@@ -5,18 +5,30 @@ mongoose.connect(MONGOURL);
 const component = require("../mongoose.models/component");
 
 const cloudinary=require('../utils/cloudinary');
+const { uploadToCloud } = require("../utils/cloudinary");
 
 const addComponent = async (req, res) => {
     try {
-       // console.log(req.body);
+
+
+
+        // if (!req.file) {
+        //     return res.status(400).send('No file uploaded.');
+        // }
+
+        // // Upload image to Cloudinary using the utility function
+        // const imageUrl = await uploadToCloud(req.file.path); // Passing the file path to Cloudinary
+
+       console.log("body : : ",);
 
         const { title, price, taxes, ads, discount, total, category } = req.body;
+
         //console.log(req.file.originalname);
-        const component_image=await cloudinary.uploadToCloud(req.myFileName) ;
-        console.log("file name",req.myFileName);
+        // const component_image=await cloudinary.uploadToCloud(req.myFileName) ;
+        // console.log("file name",req.myFileName);
         const newComponent = await new component({
             title,
-            image:component_image,
+            image:req.imageUrl,
             price,
             taxes,
             ads,
@@ -29,6 +41,8 @@ const addComponent = async (req, res) => {
 
         res.status(200).send({ message: "add component successfully" });
     } catch (error) {
+        console.log(error);
+        
         res.status(400).send({ message: error.message });
     }
 }; 

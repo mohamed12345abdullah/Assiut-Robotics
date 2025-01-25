@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
-const secret = "qwertyuiop1234567890asdfghjkl"
+const createError=require("../utils/createError")
+const httpStatusText=require("../utils/httpStatusText")
+const asyncWrapper=require("../middlleware/asyncWrapper")
+
 const generateToken = async (payload, rememberMe) => {
 
     try {
@@ -8,38 +11,42 @@ const generateToken = async (payload, rememberMe) => {
         // console.log("remember me");
         // return token;
         // }else{
-        const token = await jwt.sign(payload, secret, { expiresIn: rememberMe || "2h" });
+        const token = await jwt.sign(payload, process.env.SECRET, { expiresIn: rememberMe || "2h" });
         return token;
         // }
 
     } catch (error) {
-        return error;
+        return createError(error.message,httpStatusText.FAIL,400);
     }
 }
 
 
-const verify = async (req, res, next) => {
-    try {
-        const token = req.body.token || req.params.token;
-        console.log(token);
+const verify = asyncWrapper(
+    async (req, res, next) => {
+    
+        console.log("verify");
+        
+        const authHeader = req.headers["Authorization"] ||  req.headers["authorization"];
+        const token=authHeader.split(" ") [1]|| req.params.token;
+        console.log("token: ",token);
         if (!token) {
-            res.status(401).send({ message: "token is required" });
+            throw(createError("token is required",httpStatusText.FAIL,400))
+
+            // res.status(401).send({ message: "token is required" });
         } else {
-            const decoded = await jwt.verify(token, secret);
+            const decoded = await jwt.verify(token, process.env.SECRET);
             if (decoded) {
                 console.log("decoded is : ", decoded);
                 req.decoded = decoded;
                 next();
             } else {
-                res.status(401).send({ message: "unauthorized" })
+                throw(createError(403,httpStatusText.FAIL,"invalid token !"))
+                // res.status(401).send({ message: "unauthorized" })
             }
         }
-    } catch (error) {
+ 
 
-        res.status(401).send({ message: error.message })
-    }
-
-}
+})
 
 module.exports = {
     generateToken,
