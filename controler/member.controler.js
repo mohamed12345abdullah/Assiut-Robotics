@@ -409,43 +409,26 @@ const rate=async (req,res)=>{
 }
 
 
-const changeProfileImage=async(req,res)=>{
-try {
+const changeProfileImage=asyncWrapper(async(req,res)=>{
+
     
     //  const{ID}=req.body;
      const oldMember = await member.findOne({ email: req.decoded.email });
      
-     if(oldMember){
-            oldMember.avatar=req.imageUrl;
-            oldMember.save();
-            res.status(200).json({
-                status: httpStatusText.SUCCESS,
-                data: null,
-                message: "profile image is changed successfully",
-            });
-
-        }else{
-            res.status(400).json({
-                status: httpStatusText.ERROR,
-                data: null,
-                message: "member not found",
-            });
-
-        }
-
-    } catch (error) {
-            res.status(400).json({
-            status: httpStatusText.ERROR,
-            data: null,
-            message: error.message,
-        });
+    if(!oldMember){
+        const error=createError(404,httpStatusText.SUCCESS,"user not found ")
+        throw (error)
+        
     }
-            
-
     
-
-
-}
+    oldMember.avatar=req.imageUrl;
+    oldMember.save();
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: null,
+        message: "profile image is changed successfully",
+    });
+})
 
 
 module.exports = {
