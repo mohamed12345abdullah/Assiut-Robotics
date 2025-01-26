@@ -82,15 +82,22 @@ Router.route("/getAllMembers").get(memberControler.getAllMembers);
 
 Router.route("/login").post(memberControler.login);
 
-Router.route("/verify").post(JWT.verify, memberControler.verify);
+Router.route("/verify").get(JWT.verify, memberControler.verify);
+// Router.route("/verify").post(JWT.verify, memberControler.verify);
 
 Router.route("/confirm").post(JWT.verify, memberControler.confirm);
+
+Router.route("/generateOTP").post(memberControler.generateOTP);
+
+Router.route("/verifyOTP").post(memberControler.verifyOTP);
+
+Router.route("/changePassword").post(memberControler.changePass);
 
 Router.route("/changeHead").post(JWT.verify, memberControler.changeHead);
 
 Router.route("/hr").post(JWT.verify, memberControler.controleHR);
 
-Router.route("/generateOTP/:email").get(memberControler.generateOTP);
+
 
 Router.route("/verifyOTP").post(otp.verifyOtp);
 

@@ -19,7 +19,7 @@ const asyncWrapper = require("../middlleware/asyncWrapper");
 // send email
 const sendEmail = require("../utils/sendEmail");
 // otp
-const OTP = require("../utils/otp");
+const otp = require("../utils/otp");
 
 const strongPassword=require("../utils/strongPass");
 const createError=require("../utils/createError")
@@ -34,12 +34,19 @@ const filePath = path.join(__dirname, '../public/verifyEmail.html');
 const test=async()=>{
     console.log("updateeeeeeeeeeeeeeeeeeeeeeeee")
     const members=await member.find();
+    let i=0;
     members.forEach(async(memb)=>{
-        console.log("memberrr",memb)
-        memb.verified=true;
-        memb.role="member";
-        await memb.save()
-        console.log(memb)
+        if(memb.name=="tset"){
+            console.log("memberrr ",i,memb) 
+            i++;
+            // memb.verified=true;
+            await member.findOneAndDelete({name:"tset"})  
+            // await member.save()
+            // memb.role="member"; 
+            // await memb.save()
+            // console.log(memb)
+        }
+     
     })
 
     
@@ -55,11 +62,13 @@ const htmlContent_ofVrify=fs.readFileSync(filePath,"utf-8");
 const register =asyncWrapper( async (req, res,next) => {
         let { name, email, password, committee, gender, phoneNumber } = req.body;
         let oldEmail = await member.findOne({ email });
-        if (oldEmail) {
+        if (oldEmail && oldEmail.verified) {
             // console.log("old member", oldEmail);
+            
             const error=createError(400, httpStatusText.FAIL,"This email is already exist. Please log in or use a different email.")
             throw(error);
         }
+        await member.findOneAndDelete({email})
         const strong=await strongPassword(password);
        if(strong.length!=0){
         const error=createError(400, httpStatusText.FAIL,strong)
@@ -111,6 +120,7 @@ const verifyEmail =asyncWrapper( async (req, res,next) => {
 })
 
 const login =asyncWrapper( async (req, res) => {
+   
 
         console.log("body", req.body);
         const { email, password, remember } = req.body;
@@ -123,11 +133,9 @@ const login =asyncWrapper( async (req, res) => {
 
 
         if(!oldMember.verified){
-            res.status(400).json({
-                status: httpStatusText.FAIL,
-                data: null,
-                message: "verify your email by click on the link on your email ",     
-            });
+            const error=createError(404, httpStatusText.FAIL,"verify your email by click on the link on your email")
+            throw(error);
+     
         }
 
 
@@ -136,15 +144,15 @@ const login =asyncWrapper( async (req, res) => {
             const error=createError(400, httpStatusText.FAIL,"wrong password")
             throw(error);
         }
-
+ 
 
         if (oldMember.role == "not accepted") {
-            const error=createError(400, httpStatusText.FAIL,"wait until your account be accepted")
+            const error=createError(401, "un authorized","wait until your account be accepted")
             throw(error);
         } 
-
-
-        const token = await jwt.generateToken({ email},remember);
+        const generateToken= jwt.generateToken();
+        
+        const token = await generateToken({ email},remember);
             
         res.status(200).json({
             status: httpStatusText.SUCCESS,
@@ -172,7 +180,7 @@ const getAllMembers =asyncWrapper( async (req, res) => {
 const verify =asyncWrapper( async (req, res) => {
     try {
         if (req.decoded) {
-            const oldMember = await member.findOne({ email: req.decoded.email });
+            const oldMember = await member.findOne({ email: req.decoded.email },{password:false});
             if (oldMember) {
                 res.status(200).send({ message: "success authorization", data: oldMember });
             } else {
@@ -211,6 +219,101 @@ const confirm =asyncWrapper( async (req, res) => {
         });
 });
 
+
+
+const generateOTP =asyncWrapper( async (req, res,next) => {
+    const { email } = req.body;
+
+    console.log(req.body);
+    let oldmember = await member.findOne({ email },{password:false});
+    if (oldmember) {
+        const generateOTP=otp.generateOtp()
+        const{secret,code} = await generateOTP();
+        oldmember.secretKey=secret;
+        await oldmember.save();
+        console.log(oldmember);
+        const htmlContent=fs.readFileSync(path.join(__dirname, '../public/verifyCode.html'),"utf-8");
+
+        await sendEmail({
+            email: oldmember.email,
+            subject: "Reset Your Password",
+            text: "Reset Your Password",
+            html: htmlContent.replace("{{verification_code}}",code),
+        });
+        res.status(200).json({
+            status: httpStatusText.SUCCESS,
+            data: null,
+            message: "check your email ",
+        });
+    } else {
+        const error=createError(404,httpStatusText.FAIL,"user not found")
+        throw(error)
+
+    }
+});
+
+
+const verifyOTP=asyncWrapper(
+    async (req,res,next)=>{
+        // const error=createError(400,httpStatusText.FAIL,"wr" )
+        // throw(error)
+        const {email,code}=req.body;
+        console.log(req.body);
+        
+        const oldMember=await member.findOne({email},{secretKey:true});
+
+        console.log(oldMember.secretKey);
+        
+        const verifiOTP=otp.verifyOtp();
+        if(await verifiOTP(oldMember.secretKey,code)){
+            res.status(200).json({
+                statusCode:200,
+                statusText:httpStatusText.SUCCESS,
+                message:"true otp"
+            })
+        }
+
+
+    }
+)
+
+
+const changePass =asyncWrapper( async (req, res) => {
+  
+        const { email, newPassword,code } = req.body;
+        const secret=member.find({email},{secret:true}) 
+        const verifiOTP=otp.verifyOtp();
+        const oldMember=await member.findOne({email},{secretKey:true});
+        console.log(oldMember.secretKey);
+
+        await verifiOTP(oldMember.secretKey,code)
+        const strong=await strongPassword(newPassword);
+       if(strong.length!=0){
+        const error=createError(400, httpStatusText.FAIL,strong)
+        throw(error);
+       }
+            
+        let hashedpass = await bcrypt.hashing(newPassword);
+
+        const updated = await member.findOneAndUpdate({ email }, { password: hashedpass },{password:false});
+        if (updated) {
+            res.status(200).json({
+                status: httpStatusText.SUCCESS,
+                data: updated,
+                message: "updated success",
+            });
+        } else {
+            res.status(404).json({
+                status: httpStatusText.FAIL,
+                data: null,
+                message: "this user not found",
+            });
+        }
+
+});
+
+
+
 const controleHR = async (req, res) => {
     try {
         const { id, committee } = req.body;
@@ -243,61 +346,6 @@ const changeHead = async (req, res) => {
             data: null,
             message: "done",
         });
-    } catch (error) {
-        res.status(400).send({
-            status: httpStatusText.FAIL,
-            data: null,
-            message: error.message,
-        });
-    }
-};
-
-const generateOTP = async (req, res) => {
-    const { email } = req.params;
-    // console.log(email);
-    let oldmember = await member.findOne({ email });
-    if (oldmember) {
-        let code = await OTP.generateOtp();
-        // console.log(oldmember);
-        await sendEmail({
-            email: oldmember.email,
-            subject: " OTP",
-            text: "my code is :",
-            html: `  code <hr> ${code}`,
-        });
-        res.status(200).json({
-            status: httpStatusText.SUCCESS,
-            data: null,
-            message: "check your email ",
-        });
-    } else {
-        res.status(404).json({
-            status: httpStatusText.FAIL,
-            data: null,
-            message: "this user not found",
-        });
-    }
-};
-
-const changePass = async (req, res) => {
-    try {
-        const { email, newpass } = req.body;
-        let hashedpass = await bcrypt.hashing(newpass);
-
-        const updated = await member.findOneAndUpdate({ email }, { password: hashedpass });
-        if (updated) {
-            res.status(200).json({
-                status: httpStatusText.SUCCESS,
-                data: updated,
-                message: "updated success",
-            });
-        } else {
-            res.status(404).json({
-                status: httpStatusText.FAIL,
-                data: null,
-                message: "this user not found",
-            });
-        }
     } catch (error) {
         res.status(400).send({
             status: httpStatusText.FAIL,
@@ -410,6 +458,7 @@ module.exports = {
     controleHR,
     changeHead,
     generateOTP,
+    verifyOTP,
     changePass,
     rate,
     changeProfileImage
