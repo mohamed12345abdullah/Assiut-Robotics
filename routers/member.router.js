@@ -118,7 +118,10 @@ Router.route("/changeProfileImage").post(
                 }
     
                 // Upload image to Cloudinary using the utility function
-                const imageUrl = await uploadToCloud(req.file.path); // Passing the file path to Cloudinary
+                const filePath = __dirname+'../public/'+req.file.path; 
+                console.log(filePath);
+                
+                const imageUrl = await uploadToCloud(filePath); // Passing the file path to Cloudinary
                 req.imageUrl=imageUrl;
                 console.log("uploaded to cloudinary");
                 
@@ -128,7 +131,7 @@ Router.route("/changeProfileImage").post(
             //         url: imageUrl, // Cloudinary URL of the uploaded image
             //     });
             } catch (error) {
-                res.status(500).json({ message: 'Error uploading image', error });
+                res.status(500).json({ message: 'Error uploading image', error:error.message });
             }
         },memberControler.changeProfileImage
 )  
