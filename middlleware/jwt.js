@@ -28,7 +28,7 @@ const verify =
         const authHeader = req.headers["Authorization"] ||  req.headers["authorization"];
         console.log("verify",req.params.token,authHeader);
 
-        if (!authHeader &&!req.params.token) {
+        if (!authHeader && !req.params.token) {
             throw(createError(401,httpStatusText.FAIL,"token is required"))
 
             // res.status(401).send({ message: "token is required" });

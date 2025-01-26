@@ -111,12 +111,17 @@ Router.route("/changeProfileImage").post(
         async (req, res,next) => {
             try {
                 if (!req.file) {
+
                     return res.status(400).send('No file uploaded.');
+                }else{
+                    console.log("  file is recived")
                 }
     
                 // Upload image to Cloudinary using the utility function
                 const imageUrl = await uploadToCloud(req.file.path); // Passing the file path to Cloudinary
                 req.imageUrl=imageUrl;
+                console.log("uploaded to cloudinary");
+                
                 next()
             //     res.status(200).json({
             //         message: 'Image uploaded successfully!',
@@ -125,6 +130,6 @@ Router.route("/changeProfileImage").post(
             } catch (error) {
                 res.status(500).json({ message: 'Error uploading image', error });
             }
-        },JWT.verify,memberControler.changeProfileImage
+        },memberControler.changeProfileImage
 )  
 module.exports = Router;
