@@ -411,10 +411,12 @@ const rate=async (req,res)=>{
 
 const changeProfileImage=asyncWrapper(async(req,res)=>{
 
-    const {email}=req.body.email;
+    const email=req.body.email;
+    console.log(email);
+    
     //  const{ID}=req.body;
      const oldMember = await member.findOne({email});
-     
+     console.log(oldMember)
     if(!oldMember){
         const error=createError(404,httpStatusText.SUCCESS,"user not found ")
         throw (error)
