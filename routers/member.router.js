@@ -1,6 +1,6 @@
 const express = require("express");
 
-const memberControler = require("../controler/member.controler");
+const memberController = require("../controller/member.controller");
 const JWT = require("../middlleware/jwt");
 const Router = express.Router();
 const multer = require("multer");
@@ -44,95 +44,95 @@ const { uploadToCloud } = require("../utils/cloudinary");
 
 
 const diskStorage = multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, "public/"); // Save locally before uploading to Cloudinary
-        },
-        filename: (req, file, cb) => {
-            const ext = file.mimetype.split("/")[1];
-            const filename = `${file.originalname.split(".")[0]}_${Date.now()}.${ext}`;
-            req.myFileName = filename;
-            cb(null, filename);
-        },
-    });
-    
-    const fileFilter = (req, file, cb) => {
-        const imageType = file.mimetype.split("/")[1];
-        if (imageType === "jpg" || imageType === "jpeg" || imageType === "png") {
-            return cb(null, true); // Only allow JPG and PNG files
-        } else {
-            return cb(new Error("Only images (jpg, jpeg, png) are allowed!"), false);
-        }
-    };
-    
-    // Multer middleware
-    const upload = multer({
-        storage: diskStorage,
-        fileFilter,
-    });
-    
+    destination: (req, file, cb) => {
+        cb(null, "public/"); // Save locally before uploading to Cloudinary
+    },
+    filename: (req, file, cb) => {
+        const ext = file.mimetype.split("/")[1];
+        const filename = `${file.originalname.split(".")[0]}_${Date.now()}.${ext}`;
+        req.myFileName = filename;
+        cb(null, filename);
+    },
+});
 
-Router.route("/register").post(memberControler.register);
+const fileFilter = (req, file, cb) => {
+    const imageType = file.mimetype.split("/")[1];
+    if (imageType === "jpg" || imageType === "jpeg" || imageType === "png") {
+        return cb(null, true); // Only allow JPG and PNG files
+    } else {
+        return cb(new Error("Only images (jpg, jpeg, png) are allowed!"), false);
+    }
+};
+
+// Multer middleware
+const upload = multer({
+    storage: diskStorage,
+    fileFilter,
+});
+
+
+Router.route("/register").post(memberController.register);
 
 Router.route("/verifyEmail/:token").get(
-        JWT.verify,
-        memberControler.verifyEmail
+    JWT.verify,
+    memberController.verifyEmail
 );
 
-Router.route("/getAllMembers").get(memberControler.getAllMembers);
+Router.route("/getAllMembers").get(memberController.getAllMembers);
 
-Router.route("/login").post(memberControler.login);
+Router.route("/login").post(memberController.login);
 
-Router.route("/verify").get(JWT.verify, memberControler.verify);
-// Router.route("/verify").post(JWT.verify, memberControler.verify);
+Router.route("/verify").get(JWT.verify, memberController.verify);
+// Router.route("/verify").post(JWT.verify, memberController.verify);
 
-Router.route("/confirm").post(JWT.verify, memberControler.confirm);
+Router.route("/confirm").post(JWT.verify, memberController.confirm);
 
-Router.route("/generateOTP").post(memberControler.generateOTP);
+Router.route("/generateOTP").post(memberController.generateOTP);
 
-Router.route("/verifyOTP").post(memberControler.verifyOTP);
+Router.route("/verifyOTP").post(memberController.verifyOTP);
 
-Router.route("/changePassword").post(memberControler.changePass);
+Router.route("/changePassword").post(memberController.changePass);
 
-Router.route("/changeHead").post(JWT.verify, memberControler.changeHead);
+Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
 
-Router.route("/hr").post(JWT.verify, memberControler.controleHR);
+Router.route("/hr").post(JWT.verify, memberController.controlHR);
 
 
 
 Router.route("/verifyOTP").post(otp.verifyOtp);
 
-Router.route("/changePass").post(memberControler.changePass);
+Router.route("/changePass").post(memberController.changePass);
 
 
-Router.route("/rate").post(JWT.verify,memberControler.rate);
+Router.route("/rate").post(JWT.verify, memberController.rate);
 
 Router.route("/changeProfileImage").post(
-        upload.single("image"), 
-        async (req, res,next) => {
-            try {
-                if (!req.file) {
+    upload.single("image"),
+    async (req, res, next) => {
+        try {
+            if (!req.file) {
 
-                    return res.status(400).send('No file uploaded.');
-                }else{
-                    console.log("  file is recived")
-                }
-    
-                // Upload image to Cloudinary using the utility function
-                const filePath = __dirname+'../public/'+req.file.path; 
-                console.log(filePath);
-                
-                const imageUrl = await uploadToCloud(filePath); // Passing the file path to Cloudinary
-                req.imageUrl=imageUrl;
-                console.log("uploaded to cloudinary");
-                
-                next()
+                return res.status(400).send('No file uploaded.');
+            } else {
+                console.log("  file is received")
+            }
+
+            // Upload image to Cloudinary using the utility function
+            const filePath = __dirname + '../public/' + req.file.path;
+            console.log(filePath);
+
+            const imageUrl = await uploadToCloud(filePath); // Passing the file path to Cloudinary
+            req.imageUrl = imageUrl;
+            console.log("uploaded to cloudinary");
+
+            next()
             //     res.status(200).json({
             //         message: 'Image uploaded successfully!',
             //         url: imageUrl, // Cloudinary URL of the uploaded image
             //     });
-            } catch (error) {
-                res.status(500).json({ message: 'Error uploading image', error:error.message });
-            }
-        },memberControler.changeProfileImage
-)  
+        } catch (error) {
+            res.status(500).json({ message: 'Error uploading image', error: error.message });
+        }
+    }, memberController.changeProfileImage
+)
 module.exports = Router;

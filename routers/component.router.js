@@ -1,5 +1,5 @@
 const express = require("express");
-const componentControler = require("../controler/component.controler.js");
+const componentController = require("../controller/component.controller.js");
 const JWT = require("../middlleware/jwt.js");
 const Router = express.Router();
 const multer = require("multer");
@@ -35,8 +35,8 @@ const upload = multer({
 
 // Cloudinary image upload route
 Router.route("/add").post(
-    upload.single("image"), 
-    async (req, res,next) => {
+    upload.single("image"),
+    async (req, res, next) => {
         try {
             if (!req.file) {
                 return res.status(400).send('No file uploaded.');
@@ -44,22 +44,22 @@ Router.route("/add").post(
 
             // Upload image to Cloudinary using the utility function
             const imageUrl = await uploadToCloud(req.file.path); // Passing the file path to Cloudinary
-            req.imageUrl=imageUrl;
+            req.imageUrl = imageUrl;
             next()
-        //     res.status(200).json({
-        //         message: 'Image uploaded successfully!',
-        //         url: imageUrl, // Cloudinary URL of the uploaded image
-        //     });
+            //     res.status(200).json({
+            //         message: 'Image uploaded successfully!',
+            //         url: imageUrl, // Cloudinary URL of the uploaded image
+            //     });
         } catch (error) {
             res.status(500).json({ message: 'Error uploading image', error });
         }
     },
-    componentControler.addComponent 
+    componentController.addComponent
 );
-Router.route("/getComponents").get(componentControler.getCombonent);
+Router.route("/getComponents").get(componentController.getCombonent);
 
-Router.route("/update").post(componentControler.updateComponent);
-Router.route("/deleteAll").get(componentControler.deleteAll);
-Router.route("/deleteOne").post(componentControler.deleteOne);
+Router.route("/update").post(componentController.updateComponent);
+Router.route("/deleteAll").get(componentController.deleteAll);
+Router.route("/deleteOne").post(componentController.deleteOne);
 
 module.exports = Router;

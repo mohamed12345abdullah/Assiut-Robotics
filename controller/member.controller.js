@@ -314,7 +314,7 @@ const changePass =asyncWrapper( async (req, res) => {
 
 
 
-const controleHR = async (req, res) => {
+const controlHR = async (req, res) => {
     try {
         const { id, committee } = req.body;
 
@@ -440,7 +440,7 @@ module.exports = {
     getAllMembers,
     verify,
     confirm,
-    controleHR,
+    controlHR,
     changeHead,
     generateOTP,
     verifyOTP,
