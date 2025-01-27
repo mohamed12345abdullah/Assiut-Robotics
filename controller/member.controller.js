@@ -68,7 +68,7 @@ const register =asyncWrapper( async (req, res,next) => {
             const error=createError(400, httpStatusText.FAIL,"This email is already exist. Please log in or use a different email.")
             throw(error);
         }
-        if(oldMember){
+        if(oldEmail){
             const error=createError(400, httpStatusText.FAIL,"This email is already exist. verify your email by click on the link on your email")
             throw(error);
         }
