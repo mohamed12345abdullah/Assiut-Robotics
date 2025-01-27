@@ -3,11 +3,11 @@ const router = express.Router();
 const { Track } = require('../mongoose.models/member');
 
 
-router.get("getAllTracks",async(req,res)=>{
+router.get("/getAllTracks",async(req,res)=>{
     try {
         
     const AllTracks=await Track.find({});
-    res.status(200).json({message:"get data successfully ",date:AllTracks})
+    res.status(200).json({message:"get data successfully ",data:AllTracks})
 
     } catch (error) {
             res.status(400).json({message:error.message})
