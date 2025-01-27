@@ -9,7 +9,7 @@ module.exports=asyncWrapper (
     async (req,res,next)=>{
         const {email}=req.decoded;
         const admin=member.findOne({email}).role;
-        if(! roles.includes(role)){
+        if(! roles.includes(admin)){
             const error=createError(401, httpStatusText.FAIL,"un authorized")
             throw(error);
         }

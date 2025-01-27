@@ -6,7 +6,7 @@ const express = require("express");
 const memberRouter = require('./routers/member.router')
 const blogRouter = require('./routers/blog.router')
 const componentRouter = require('./routers/component.router')
-
+const TrackRouter=require('./routers/Tracks.router')
 // status text
 const httpStatusText = require('./utils/httpStatusText');
 
@@ -32,6 +32,7 @@ app.use("/uploads", express.static(__dirname + "/uploads"))
 app.use("/members", memberRouter);
 app.use('/blogs', blogRouter);
 app.use('/components', componentRouter);
+app.use("/Tracks/api",TrackRouter);
 app.get("/", async (req, res) => {
   try {
     const members = await members.findBycommittee(req.params.committee);
@@ -46,8 +47,8 @@ app.get("/", async (req, res) => {
 })
 
 
-const committeeRouter = require('./routers/committee.router');
-app.use('/api/committees', committeeRouter);
+// const committeeRouter = require('./routers/committee.router');
+// app.use('/api/committees', committeeRouter);
 
 
 app.use("*", (req, res, next) => {

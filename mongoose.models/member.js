@@ -1,6 +1,33 @@
 const mongoose=require('mongoose');
 const validator=require('validator');
 
+
+
+
+
+const taskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  dueDate: Date,
+  submissionLink: String,
+  evaluation: String, // تقييم المسؤول
+});
+
+const courseSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: String,
+  tasks: [taskSchema], // كل كورس يحتوي على مجموعة من التاسكات
+});
+
+const trackSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: String,
+  courses: [courseSchema], // كل تراك يحتوي على مجموعة من الكورسات
+});
+
+
+
+
 const memberSchema=new mongoose.Schema({
     name:{
         type:String,
@@ -52,7 +79,27 @@ const memberSchema=new mongoose.Schema({
     },
     secretKey:{
         type:String,
-    }
+    },
+    startedTracks: [
+        {
+          trackId: { type: mongoose.Schema.Types.ObjectId, ref: 'Track' },
+          courses: [
+            {
+              courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+              tasks: [
+                {
+                  taskId: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+                  submissionLink: String,
+                  submittedAt: Date,
+                },
+              ],
+            },
+          ],
+        },
+      ],
 })
 
-module.exports=mongoose.model("Member",memberSchema);
+const Member = mongoose.model('Member', memberSchema);
+const Track = mongoose.model('Track', trackSchema);
+
+module.exports = { Member, Track };
