@@ -41,12 +41,12 @@ app.get("/", async (req, res) => {
     }
     res.json(members);
   } catch (err) {
-    return res.status(400).json({ msg: "error" })
+    return res.status(400).json({ msg: "error" }) 
   }
 })
 
 
-const committeeRouter = require('./routes/committee.router');
+const committeeRouter = require('./routers/committee.router');
 app.use('/api/committees', committeeRouter);
 
 

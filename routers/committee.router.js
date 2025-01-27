@@ -1,7 +1,7 @@
 const express = require('express');
-const committeeController = require('../controllers/committee.controller');
-const validateApprovalCommitteeMember = require('../middlewares/validateApprovalCommitteeMember');
-const checkPermissionsCommitteeMember = require('../middlewares/checkPermissionsCommitteeMember');
+const committeeController = require('../controller/committee.controller');
+const validateApprovalCommitteeMember = require('../middlleware/validateApprovalCommitteeMember');
+const checkPermissionsCommitteeMember = require('../middlleware/checkPermissionsCommitteeMember');
 
 
 const committeeRouter = express.Router();
