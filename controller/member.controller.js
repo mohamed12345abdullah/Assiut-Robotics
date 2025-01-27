@@ -41,8 +41,8 @@ const test=async()=>{
             i++;
             // memb.verified=true;
             await member.findOneAndDelete({name:"tset"})  
-            // await member.save()
-            // memb.role="member"; 
+            await member.save()
+            memb.role="member"; 
             // await memb.save()
             // console.log(memb)
         }
@@ -69,6 +69,7 @@ const register =asyncWrapper( async (req, res,next) => {
             throw(error);
         }
         await member.findOneAndDelete({email})
+        await member.save()
         const strong=await strongPassword(password);
        if(strong.length!=0){
         const error=createError(400, httpStatusText.FAIL,strong)
@@ -86,7 +87,8 @@ const register =asyncWrapper( async (req, res,next) => {
             phoneNumber,
         })
         await newMember.save();
-        const token = await jwt.generateToken({  email }, "10m");
+        const generateToken= jwt.generateToken()
+        const token = await generateToken({  email }, "10m");
         // https://assiut-robotics-zeta.vercel.app/
         const token_url=`https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
         console.log("req.body is : ", req.body);
