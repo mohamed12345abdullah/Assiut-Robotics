@@ -198,16 +198,16 @@ const verify =asyncWrapper( async (req, res) => {
 });
 // roles {"not accepted"}
 const confirm =asyncWrapper( async (req, res) => {
-        const { id, accepted } = req.body;
+        const { email, accepted } = req.body;
         if(!accepted){
-            await member.findByIdAndDelete(id);
+            await member.findOneAndDelete({email});
             res.status(200).json({
                 status: httpStatusText.SUCCESS,
                 data: null,
                 message: "deleted",
             });
         }
-        const Member=await member.findByIdAndUpdate(id, { role:"member" });
+        const Member=await member.findOneAndUpdate({email}, { role:"member" });
         const filePath = path.join(__dirname, '../public/accepted.html');
 
         const htmlContent=fs.readFileSync(filePath,"utf-8");
