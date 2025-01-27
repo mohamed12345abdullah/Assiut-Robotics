@@ -69,7 +69,7 @@ const register =asyncWrapper( async (req, res,next) => {
             throw(error);
         }
         await member.findOneAndDelete({email})
-        await member.save()
+        // await member.save()
         const strong=await strongPassword(password);
        if(strong.length!=0){
         const error=createError(400, httpStatusText.FAIL,strong)
