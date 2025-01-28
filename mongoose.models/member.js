@@ -6,7 +6,7 @@ const validator=require('validator');
 
 
 const taskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  name: { type: String, required: true },
   description: String,
   dueDate: Date,
   submissionLink: String,

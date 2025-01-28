@@ -14,6 +14,42 @@ router.get("/getAllTracks",async(req,res)=>{
     }
 })
 
+router.get("/getCourses/:id",async(req,res)=>{
+    try {
+      const id=  req.params.id;
+    const track=await Track.findById(id);
+    const courses= track.courses;
+    res.status(200).json({message:"get data successfully ",data:courses})
+
+    } catch (error) {
+            res.status(400).json({message:error.message})
+    }
+})
+
+router.get("/course/:Tid/:Cid/tasks",async(req,res)=>{
+    try {
+      const {Tid,Cid}=req.params;
+      console.log(Tid,Cid);
+      
+      const track=await Track.findById(Tid);
+      const courses= track.courses;
+      console.log(courses)
+
+      course=courses.id(Cid);
+      console.log(course);
+
+      tasks=course.tasks
+
+      console.log(tasks)
+      
+   
+    res.status(200).json({message:"get data successfully ",data:tasks})
+
+    } catch (error) {
+            res.status(400).json({message:error.message})
+    }
+})
+
 
 // إضافة تراك جديد
 router.post('/add', async (req, res) => {
@@ -91,12 +127,33 @@ router.delete('/:trackId/course/delete/:courseId', async (req, res) => {
     const { trackId, courseId } = req.params;
     const track = await Track.findById(trackId);
     if (!track) return res.status(404).json({ message: 'Track not found' });
-
-    track.courses.id(courseId).remove();
+    
+    const result = await Track.updateOne(
+      { _id: trackId },
+      { $pull: { courses: { _id: courseId } } }
+    );
+    
+    if (result.modifiedCount > 0) {
+      console.log("Course removed successfully.");
+    } else {
+      console.log("No course found with the given ID.");
+    }
+    
+    // const course=await track.courses.id(courseId)
+    // if (course) {
+    //   course.remove(); // Use remove() to mark it for removal
+    //   await track.save(); // Save the parent document to persist changes
+    //   console.log("Course removed successfully.");
+    // } else {
+    //   console.log("Course not found.");
+    // }
+    
+    console.log("ddone");
+    
     await track.save();
     res.status(200).json({ message: 'Course deleted successfully', track });
   } catch (err) {
-    res.status(500).json({ message: 'Error deleting course', error: err.message });
+    res.status(500).json({ message: 'Error deleting course api', error: err.message });
   }
 });
 
@@ -104,7 +161,7 @@ router.delete('/:trackId/course/delete/:courseId', async (req, res) => {
 router.post('/:trackId/course/:courseId/task/add', async (req, res) => {
   try {
     const { trackId, courseId } = req.params;
-    const { title, description, dueDate } = req.body;
+    const { name, description, dueDate } = req.body;
 
     const track = await Track.findById(trackId);
     if (!track) return res.status(404).json({ message: 'Track not found' });
@@ -112,7 +169,7 @@ router.post('/:trackId/course/:courseId/task/add', async (req, res) => {
     const course = track.courses.id(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
-    course.tasks.push({ title, description, dueDate });
+    course.tasks.push({ name, description, dueDate });
     await track.save();
     res.status(201).json({ message: 'Task added successfully', track });
   } catch (err) {
