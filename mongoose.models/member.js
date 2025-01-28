@@ -99,7 +99,7 @@ const memberSchema=new mongoose.Schema({
       ],
 })
 
-const Member = mongoose.model('Member', memberSchema);
+const member = mongoose.model('Member', memberSchema);
 const Track = mongoose.model('Track', trackSchema);
 
-module.exports = { Member, Track };
+module.exports = { member, Track };

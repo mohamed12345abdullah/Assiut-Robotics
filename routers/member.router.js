@@ -93,6 +93,9 @@ Router.route("/verifyOTP").post(memberController.verifyOTP);
 
 Router.route("/changePassword").post(memberController.changePass);
 
+Router.route("/get/:com").get(memberController.getCommittee)
+
+
 Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
 
 Router.route("/hr").post(JWT.verify, memberController.controlHR);

@@ -2,7 +2,7 @@ require("dotenv").config();
 const MONGOURL = process.env.MONGOURL;
 const mongoose = require("mongoose");
 mongoose.connect(MONGOURL);
-const member = require("../mongoose.models/member");
+const {member} = require("../mongoose.models/member");
 
 // jwt
 const jwt = require("../middlleware/jwt");
@@ -317,7 +317,20 @@ const changePass =asyncWrapper( async (req, res) => {
 
 });
 
-
+const getCommittee=asyncWrapper(
+   async(req, res,next) => {
+    const com=req.params.com;
+    if (!com) {
+        const error=createError(400,httpStatusText.FAIL,"name of committee  required")
+        throw (error)
+        // return res.status(404).json({ msg: "committee not found" })
+      }
+        const members = await member.find({committee:com},{password:false});
+      
+       
+          res.status(200).json({message:"get committee members succesfully",date:members});
+        }
+)
 
 const controlHR = async (req, res) => {
     try {
@@ -439,6 +452,7 @@ const changeProfileImage=asyncWrapper(async(req,res)=>{
 
 
 module.exports = {
+    getCommittee,
     register,
     verifyEmail,
     login,
