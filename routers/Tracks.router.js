@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Track } = require('../mongoose.models/member');
-
+const {Track}  = require('../mongoose.models/Track');
+const member=require('../mongoose.models/member')
+const JWT=require('../middlleware/jwt')
 
 router.get("/getAllTracks",async(req,res)=>{
     try {
@@ -52,10 +53,13 @@ router.get("/course/:Tid/:Cid/tasks",async(req,res)=>{
 
 
 // إضافة تراك جديد
-router.post('/add', async (req, res) => {
+router.post('/add', JWT.verify,async (req, res) => {
   try {
+    const email=req.decoded.email;
+    const committee=await member.findOne({email},{committee:true});
+    console.log(committee);
     const { name, description } = req.body;
-    const newTrack = new Track({ name, description });
+    const newTrack = new Track({ name, description,committee });
     await newTrack.save();
     res.status(201).json({ message: 'Track added successfully', track: newTrack });
   } catch (err) {

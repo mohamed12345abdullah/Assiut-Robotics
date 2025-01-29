@@ -5,26 +5,30 @@ const validator=require('validator');
 
 
 
-const taskSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: String,
-  time:String,
-  score:String,
-  materialLink: String,
-  // evaluation: String, // تقييم المسؤول
-});
+// const taskSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   description: String,
+//   time:String,
+//   score:String,
+//   materialLink: String,
+//   // evaluation: String, // تقييم المسؤول
+// });
 
-const courseSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: String,
-  tasks: [taskSchema], // كل كورس يحتوي على مجموعة من التاسكات
-});
+// const courseSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   description: String,
+//   tasks: [taskSchema], // كل كورس يحتوي على مجموعة من التاسكات
+// });
 
-const trackSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: String,
-  courses: [courseSchema], // كل تراك يحتوي على مجموعة من الكورسات
-});
+// const trackSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   description: String,
+//   courses: [courseSchema], // كل تراك يحتوي على مجموعة من الكورسات
+//   committee:String,
+//   members:[
+//     {}
+//   ]
+// });
 
 
 
@@ -94,13 +98,13 @@ const memberSchema=new mongoose.Schema({
     },
     startedTracks: [
         {
-          trackId: { type: mongoose.Schema.Types.ObjectId, ref: 'Track' },
+          track: { type: mongoose.Schema.Types.ObjectId, ref: 'Track' },
           courses: [
             {
-              courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+              course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
               submittedTasks: [
                 {
-                  taskId: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+                  task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
                   submissionLink: String,
                   submittedAt: {
                     type:Date,
@@ -120,6 +124,6 @@ const memberSchema=new mongoose.Schema({
 })
 
 const member = mongoose.model('Member', memberSchema);
-const Track = mongoose.model('Track', trackSchema);
 
-module.exports = { member, Track };
+
+module.exports =  member

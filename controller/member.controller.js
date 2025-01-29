@@ -2,7 +2,8 @@ require("dotenv").config();
 const MONGOURL = process.env.MONGOURL;
 const mongoose = require("mongoose");
 mongoose.connect(MONGOURL);
-const {member} = require("../mongoose.models/member");
+const member = require("../mongoose.models/member");
+const {Track,Course,Task}=require('../mongoose.models/Track')
 
 // jwt
 const jwt = require("../middlleware/jwt");
@@ -26,7 +27,7 @@ const createError=require("../utils/createError")
 const { decode } = require("jsonwebtoken");
 const fs=require("fs")
 const path = require('path');
-const strongPass = require("../utils/strongPass");
+
 
 // تحديد المسار النسبي للملف
 const filePath = path.join(__dirname, '../public/verifyEmail.html'); 
@@ -129,7 +130,11 @@ const login =asyncWrapper( async (req, res) => {
 
         console.log("body", req.body);
         const { email, password, remember } = req.body;
-        const oldMember = await member.findOne({ email });
+        const oldMember = await member.findOne({ email })
+        .populate("startedTracks.track") // Populate Track
+        .populate("startedTracks.courses.course") // Populate Course
+        .populate("startedTracks.courses.submittedTasks.task"); // Populate Task
+      
         console.log(oldMember);
         
         if (!oldMember) {
@@ -469,6 +474,7 @@ const joinCourse=asyncWrapper(
     async (req,res,next)=>{
         const {email}=req.decoded;
         console.log(email);
+        
         const {trackId,courseId}=req.body;
         console.log(trackId,courseId);
         
@@ -476,8 +482,8 @@ const joinCourse=asyncWrapper(
         MEMBER = await member.findOneAndUpdate(
             {
                  email,
-                  "startedTracks.trackId": trackId,
-                  "startedTracks.courses.courseId": { $ne: courseId } // يتأكد أن الكورس غير موجود
+                  "startedTracks.track": trackId,
+                  "startedTracks.courses.course": { $ne: courseId } // يتأكد أن الكورس غير موجود
 
                 
                 }, // نبحث عن التراك داخل المستخدم
@@ -485,19 +491,23 @@ const joinCourse=asyncWrapper(
                 $push: { "startedTracks.$.courses": { courseId } } // إضافة الكورس داخل التراك المحدد
             },
             { new: true }
-        );
+        )
+        .populate("startedTracks.track") // Populate Track
+        .populate("startedTracks.courses.course") // Populate Course
+        .populate("startedTracks.courses.submittedTasks.task"); // Populate Task
+      
 
         if(!MEMBER){
             MEMBER=await member.findOneAndUpdate(
                 {email,
-                    "startedTracks.trackId": {$ne:trackId},
+                    "startedTracks.track": {$ne:trackId},
 
                 },
                 {
                     $push:{
                         startedTracks:{
-                            trackId,
-                            courses:[{courseId}]
+                            track:trackId,
+                            courses:[{course:courseId}]
                         }
                     },
                     
@@ -526,8 +536,8 @@ const submitTask=asyncWrapper(
         let MEMBER;
         MEMBER=await member.findOne({
             email,
-            "startedTracks.courses.courseId": courseId,
-            "startedTracks.trackId": trackId,
+            "startedTracks.courses.course": courseId,
+            "startedTracks.track": trackId,
         })
         if(!MEMBER){
             const error=createError(400,httpStatusText.FAIL,"you are not joined to this course");
@@ -536,14 +546,14 @@ const submitTask=asyncWrapper(
         MEMBER = await member.findOneAndUpdate(
             {
                 email,
-                "startedTracks.trackId": trackId,  // ✅ تحويل إلى ObjectId
-                "startedTracks.courses.courseId": courseId,  // ✅ تحويل إلى ObjectId
-                "startedTracks.courses.submittedTasks.taskId": { $ne: taskId } // ✅ منع التكرار
+                "startedTracks.track": trackId,  // ✅ تحويل إلى ObjectId
+                "startedTracks.courses.course": courseId,  // ✅ تحويل إلى ObjectId
+                "startedTracks.courses.submittedTasks.task": { $ne: taskId } // ✅ منع التكرار
             },
             {
                 $push: { 
                     "startedTracks.$[track].courses.$[course].submittedTasks": { // ✅ إضافة بيانات المهمة
-                        taskId, // ✅ تحويل إلى ObjectId
+                        task:taskId, // ✅ تحويل إلى ObjectId
                         submissionLink,
                         rate,
                         notes
@@ -553,8 +563,8 @@ const submitTask=asyncWrapper(
             { 
                 new: true,
                 arrayFilters: [
-                    { "track.trackId": trackId },
-                    { "course.courseId": courseId }
+                    { "track.track": trackId },
+                    { "course.course": courseId }
                 ]
              }
         );
