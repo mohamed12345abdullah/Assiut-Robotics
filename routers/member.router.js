@@ -95,12 +95,15 @@ Router.route("/changePassword").post(memberController.changePass);
 
 Router.route("/get/:com").get(memberController.getCommittee)
 
+Router.route("/:memberId/addTask",memberController.addTask)
 
 Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
 
 Router.route("/hr").post(JWT.verify, memberController.controlHR);
 
+Router.route("/joinCourse").post(JWT.verify,memberController.joinCourse)
 
+Router.route("/submitTask").post(JWT.verify,memberController.submitTask)
 
 Router.route("/verifyOTP").post(otp.verifyOtp);
 

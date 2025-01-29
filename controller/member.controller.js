@@ -130,7 +130,8 @@ const login =asyncWrapper( async (req, res) => {
         console.log("body", req.body);
         const { email, password, remember } = req.body;
         const oldMember = await member.findOne({ email });
-
+        console.log(oldMember);
+        
         if (!oldMember) {
             const error=createError(404, httpStatusText.FAIL,"User not Found")
             throw(error);
@@ -161,7 +162,7 @@ const login =asyncWrapper( async (req, res) => {
             
         res.status(200).json({
             status: httpStatusText.SUCCESS,
-            data: {token: token},
+            data: {token: token,memberData:oldMember},
             message: "Your are logged in",
         });
 
@@ -208,6 +209,10 @@ const confirm =asyncWrapper( async (req, res) => {
             });
         }
         const Member=await member.findOneAndUpdate({email}, { role:"member" });
+        if(!Member.verified){
+            const error=createError(400,httpStatusText.FAIL,"Email Not verified yet")
+            throw(error)
+        }
         const filePath = path.join(__dirname, '../public/accepted.html');
 
         const htmlContent=fs.readFileSync(filePath,"utf-8");
@@ -451,6 +456,119 @@ const changeProfileImage=asyncWrapper(async(req,res)=>{
 })
 
 
+const addTask=asyncWrapper(
+    async (req,res,next)=>{
+        const ID=req.params.memberId;
+        const task=req.body;
+        const Member=await member.findById(ID);
+        Member.tasks.push(task);
+    }
+)
+
+const joinCourse=asyncWrapper(
+    async (req,res,next)=>{
+        const {email}=req.decoded;
+        console.log(email);
+        const {trackId,courseId}=req.body;
+        console.log(trackId,courseId);
+        
+        let MEMBER;
+        MEMBER = await member.findOneAndUpdate(
+            {
+                 email,
+                  "startedTracks.trackId": trackId,
+                  "startedTracks.courses.courseId": { $ne: courseId } // يتأكد أن الكورس غير موجود
+
+                
+                }, // نبحث عن التراك داخل المستخدم
+            {
+                $push: { "startedTracks.$.courses": { courseId } } // إضافة الكورس داخل التراك المحدد
+            },
+            { new: true }
+        );
+
+        if(!MEMBER){
+            MEMBER=await member.findOneAndUpdate(
+                {email,
+                    "startedTracks.trackId": {$ne:trackId},
+
+                },
+                {
+                    $push:{
+                        startedTracks:{
+                            trackId,
+                            courses:[{courseId}]
+                        }
+                    },
+                    
+                },
+                { new: true }
+
+            );
+        }    
+        if(!MEMBER){
+            const error=createError(400,httpStatusText.FAIL,"you are already joind to this course")
+            throw error
+        }
+        res.status(200).json({message:"joined to course successfully",data:MEMBER});
+        
+        
+    }
+)
+
+const submitTask=asyncWrapper(
+    async (req,res,next) => {
+        const {email}=req.decoded;
+        console.log(email);
+        const {trackId,courseId,taskId,submissionLink,submittedAt,rate,notes}=req.body;
+        console.log(trackId,courseId,taskId);
+        
+        let MEMBER;
+        MEMBER=await member.findOne({
+            email,
+            "startedTracks.courses.courseId": courseId,
+            "startedTracks.trackId": trackId,
+        })
+        if(!MEMBER){
+            const error=createError(400,httpStatusText.FAIL,"you are not joined to this course");
+            throw error
+        }
+        MEMBER = await member.findOneAndUpdate(
+            {
+                email,
+                "startedTracks.trackId": trackId,  // ✅ تحويل إلى ObjectId
+                "startedTracks.courses.courseId": courseId,  // ✅ تحويل إلى ObjectId
+                "startedTracks.courses.submittedTasks.taskId": { $ne: taskId } // ✅ منع التكرار
+            },
+            {
+                $push: { 
+                    "startedTracks.$[track].courses.$[course].submittedTasks": { // ✅ إضافة بيانات المهمة
+                        taskId, // ✅ تحويل إلى ObjectId
+                        submissionLink,
+                        rate,
+                        notes
+                    }
+                }
+            }  ,
+            { 
+                new: true,
+                arrayFilters: [
+                    { "track.trackId": trackId },
+                    { "course.courseId": courseId }
+                ]
+             }
+        );
+
+  
+   
+        if(!MEMBER){
+            const error=createError(401,httpStatusText.FAIL,"this task is already submited")
+            throw error
+        }
+        res.status(200).json({message:"submitted successfully",data:MEMBER});
+        
+    }
+)
 module.exports = {
     getCommittee,
     register,
@@ -465,5 +583,14 @@ module.exports = {
     verifyOTP,
     changePass,
     rate,
-    changeProfileImage
+    changeProfileImage,
+    addTask,
+    joinCourse,
+    submitTask
 };
+
+
+
+
+
+

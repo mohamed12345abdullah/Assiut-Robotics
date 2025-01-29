@@ -8,9 +8,10 @@ const validator=require('validator');
 const taskSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: String,
-  dueDate: Date,
-  submissionLink: String,
-  evaluation: String, // تقييم المسؤول
+  time:String,
+  score:String,
+  materialLink: String,
+  // evaluation: String, // تقييم المسؤول
 });
 
 const courseSchema = new mongoose.Schema({
@@ -26,6 +27,17 @@ const trackSchema = new mongoose.Schema({
 });
 
 
+
+
+const memberTaskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  startDate: Date,
+  deadline:Date,
+  taskUrl:String,
+  submissionLink: String,
+  evaluation: String, // تقييم المسؤول
+});
 
 
 const memberSchema=new mongoose.Schema({
@@ -86,17 +98,25 @@ const memberSchema=new mongoose.Schema({
           courses: [
             {
               courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-              tasks: [
+              submittedTasks: [
                 {
                   taskId: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
                   submissionLink: String,
-                  submittedAt: Date,
+                  submittedAt: {
+                    type:Date,
+                    default:Date.now()
+                  }
+                    ,
+                  rate:String,
+                  notes:String,
                 },
               ],
             },
           ],
         },
       ],
+
+      tasks:[memberTaskSchema]
 })
 
 const member = mongoose.model('Member', memberSchema);

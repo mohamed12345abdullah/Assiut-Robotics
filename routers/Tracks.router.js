@@ -148,7 +148,7 @@ router.delete('/:trackId/course/delete/:courseId', async (req, res) => {
     //   console.log("Course not found.");
     // }
     
-    console.log("ddone");
+    // console.log("ddone");
     
     await track.save();
     res.status(200).json({ message: 'Course deleted successfully', track });
@@ -161,7 +161,7 @@ router.delete('/:trackId/course/delete/:courseId', async (req, res) => {
 router.post('/:trackId/course/:courseId/task/add', async (req, res) => {
   try {
     const { trackId, courseId } = req.params;
-    const { name, description, dueDate } = req.body;
+    const { name, description,time,score,materialLink, } = req.body;
 
     const track = await Track.findById(trackId);
     if (!track) return res.status(404).json({ message: 'Track not found' });
@@ -169,7 +169,7 @@ router.post('/:trackId/course/:courseId/task/add', async (req, res) => {
     const course = track.courses.id(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
-    course.tasks.push({ name, description, dueDate });
+    course.tasks.push({ name, description, time,score,materialLink });
     await track.save();
     res.status(201).json({ message: 'Task added successfully', track });
   } catch (err) {
@@ -211,10 +211,18 @@ router.delete('/:trackId/course/:courseId/task/delete/:taskId', async (req, res)
     const course = track.courses.id(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
-    course.tasks.id(taskId).remove();
+    const result = await Track.updateOne(
+      { _id: trackId },
+      {  courses: { _id: courseId }  },
+      { $pull: { tasks: { _id: taskId } } }
+    );
+    
+    // course.tasks.id(taskId).remove();
     await track.save();
     res.status(200).json({ message: 'Task deleted successfully', track });
   } catch (err) {
+    console.log(err.message);
+    
     res.status(500).json({ message: 'Error deleting task', error: err.message });
   }
 });
