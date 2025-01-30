@@ -40,7 +40,11 @@ const memberTaskSchema = new mongoose.Schema({
   deadline:Date,
   taskUrl:String,
   submissionLink: String,
-  evaluation: String, // تقييم المسؤول
+  headEvaluation: String, 
+  hrEvaluation: String, 
+  node:String
+
+
 });
 
 

@@ -478,9 +478,75 @@ const addTask=asyncWrapper(
         const ID=req.params.memberId;
         const task=req.body;
         const Member=await member.findById(ID);
+        if (!Member) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
         Member.tasks.push(task);
+        Member.save()
+        res.status(200).json({status:httpStatusText.SUCCESS,message:"add task successfully"})
     }
 )
+
+
+
+const editTask=asyncWrapper(
+    async (req,res,next)=>{
+        const {taskId,memberId}=req.params;
+        const update=req.body;
+        const updatedMember = await member.findOneAndUpdate(
+            { 
+                _id: memberId, 
+                "tasks._id": taskId // البحث عن العضو والمهمة المحددة باستخدام _id
+            },
+            {
+                $set: { "tasks.$": update } // تحديث المهمة المحددة في tasks
+            },
+            { new: true } // لإرجاع العضو المحدث
+        );    
+        if (!updatedMember) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
+        res.status(200).json({status:httpStatusText.SUCCESS,message:"edit task successfully",memberData:updatedMember})
+    }
+)
+
+
+
+const deleteTask = asyncWrapper(
+    async (req, res, next) => {
+        // const { email } = req.decoded;  // البريد الإلكتروني من JWT
+        const { memberId, taskId } = req.params;  // الـ memberId و taskId من الـ body
+        
+        // البحث عن العضو مع وجود الـ taskId في قائمة الـ tasks
+        const updatedMember = await member.findOneAndUpdate(
+            { 
+                _id: memberId, 
+                "tasks._id": taskId 
+            },
+            {
+                $pull: { "tasks": { _id: taskId } }  // إزالة المهمة من المصفوفة
+            },
+            { new: true }  // لضمان إرجاع العضو بعد التحديث
+        );
+
+        if (!updatedMember) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
+        res.status(200).json({
+            status: "success",
+            message: "Task deleted successfully",
+            memberData: updatedMember
+        });
+    }
+);
+
+
 
 const joinCourse=asyncWrapper(
     async (req,res,next)=>{
@@ -635,6 +701,8 @@ module.exports = {
     rate,
     changeProfileImage,
     addTask,
+    editTask,
+    deleteTask,
     joinCourse,
     submitTask
 };

@@ -95,7 +95,11 @@ Router.route("/changePassword").post(memberController.changePass);
 
 Router.route("/get/:com").get(memberController.getCommittee)
 
-Router.route("/:memberId/addTask",memberController.addTask)
+Router.route("/:memberId/addTask").post(memberController.addTask)
+
+Router.route("/:memberId/editTask/:taskId").put(memberController.editTask)
+
+Router.route("/:memberId/deleteTask/:taskId").delete(memberController.deleteTask )
 
 Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
 
