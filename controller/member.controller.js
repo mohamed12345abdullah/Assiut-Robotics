@@ -203,7 +203,23 @@ const getAllMembers =asyncWrapper( async (req, res) => {
 const verify =asyncWrapper( async (req, res) => {
     try {
         if (req.decoded) {
-            const oldMember = await member.findOne({ email: req.decoded.email },{password:false});
+            const oldMember = await member.findOne({ email: req.decoded.email },{password:false})
+            .populate({
+                path: "startedTracks.track",
+                populate: {
+                    path: "courses", // يملأ الكورسات داخل التراك
+                    populate: {
+                        path: "tasks", // يملأ التاسكات داخل الكورسات
+                    }
+                }
+            })
+            .populate({
+                path: "startedTracks.courses.course",
+                populate: {
+                    path: "tasks", // يملأ التاسكات داخل الكورس
+                }
+            })
+            .populate("startedTracks.courses.submittedTasks.task");
             if (oldMember) {
                 res.status(200).send({ message: "success authorization", data: oldMember });
             } else {
