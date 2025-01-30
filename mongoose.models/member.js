@@ -82,7 +82,7 @@ const memberSchema=new mongoose.Schema({
     },
     avatar:{
         type:String,
-        default:"../all-images/human.png"
+        default:"../all-images/default.png"
     },
     rate:{
         type:Number,

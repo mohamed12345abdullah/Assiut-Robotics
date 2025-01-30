@@ -11,7 +11,7 @@ const taskSchema = new mongoose.Schema({
   time:String,
   score:String,
   materialLink: String,
-  // evaluation: String, // تقييم المسؤول
+  evaluation: String, // تقييم المسؤول
 });
 
 const courseSchema = new mongoose.Schema({

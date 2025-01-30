@@ -232,8 +232,20 @@ const verify =asyncWrapper( async (req, res) => {
 });
 // roles {"not accepted"}
 const confirm =asyncWrapper( async (req, res) => {
+        const headEmail=req.decoded.email;
+        const head=await member.findOne({email:headEmail});
+        if(head.role!='head' && head.role !='leader' ){
+            const error=createError(401,httpStatusText.FAIL,`Stay out of what’s not yours ya ${head.name} `)
+            throw error
+        }
         const { email, accepted } = req.body;
-        if(!accepted){
+        console.log(accepted);
+        const x=await member.findOne({email,committee:head.committee});
+        if(!x  && head.role!='leader'){
+            const error=createError(401,httpStatusText.FAIL,`Stay out of what’s not yours ya ${head.name} `)
+            throw error
+        }
+        if(accepted=='false'){
             await member.findOneAndDelete({email});
             res.status(200).json({
                 status: httpStatusText.SUCCESS,
@@ -243,7 +255,7 @@ const confirm =asyncWrapper( async (req, res) => {
         }
         const Member=await member.findOneAndUpdate({email}, { role:"member" });
         if(!Member.verified){
-            const error=createError(400,httpStatusText.FAIL,"Email Not verified yet")
+            const error=createError(400,httpStatusText.FAIL,"Email Not verified yet");
             throw(error)
         }
         const filePath = path.join(__dirname, '../public/accepted.html');
@@ -388,28 +400,44 @@ const controlHR = async (req, res) => {
         });
     }
 };
-const changeHead = async (req, res) => {
-    try {
-        const old_id = req.body.old_id;
-        const new_id = req.body.new_id;
-        await member.findOneAndUpdate({ _id: old_id }, { role: 4 });
-        const newHead = await member.findOneAndUpdate({ _id: new_id }, { role: 2 });
+const changeHead =asyncWrapper( async (req, res) => {
+ 
+
+        const id = req.body.memberId;
+        const email=req.decoded.email;
+        const Member=await member.findOne({email});
+        if(Member.role != 'leader'){
+            const error=createError(401,httpStatusText.FAIL,`Stay out of what’s not yours ya ${Member.name} `)
+            throw error
+        }
+        // await member.findOneAndUpdate({ _id: old_id }, { role: 4 });
+        const newHead=await member.findOne({_id:id});
+        const committee=newHead.committee
+        const oldHead=await member.findOne({committee,role:"head"});
+   
+        if( oldHead){
+            if(oldHead.email==newHead.email){
+                return res.status(200).json({message:"the same head"})
+            }
+            oldHead.role="member";
+            await oldHead.save()
+        }
+
+        newHead.role="head";
+        // const members=await member.find({committee},{role:"head"})
+        // await members.save()
+        // const newHead = await member.findOneAndUpdate({ _id: new_id }, { role: 2 });
         // await member.save();
-        newHead.save();
+        await newHead.save();
+        // console.log("rund  ",committee);
 
         res.status(200).json({
             status: httpStatusText.SUCCESS,
             data: null,
             message: "done",
         });
-    } catch (error) {
-        res.status(400).send({
-            status: httpStatusText.FAIL,
-            data: null,
-            message: error.message,
-        });
-    }
-};
+
+});
 
 
 const rate=async (req,res)=>{
