@@ -131,10 +131,22 @@ const login =asyncWrapper( async (req, res) => {
         console.log("body", req.body);
         const { email, password, remember } = req.body;
         const oldMember = await member.findOne({ email })
-        .populate("startedTracks.track") // Populate Track
-        .populate("startedTracks.courses.course") // Populate Course
-        .populate("startedTracks.courses.submittedTasks.task"); // Populate Task
-      
+        .populate({
+            path: "startedTracks.track",
+            populate: {
+                path: "courses", // يملأ الكورسات داخل التراك
+                populate: {
+                    path: "tasks", // يملأ التاسكات داخل الكورسات
+                }
+            }
+        })
+        .populate({
+            path: "startedTracks.courses.course",
+            populate: {
+                path: "tasks", // يملأ التاسكات داخل الكورس
+            }
+        })
+        .populate("startedTracks.courses.submittedTasks.task"); 
         console.log(oldMember);
         
         if (!oldMember) {
@@ -488,14 +500,26 @@ const joinCourse=asyncWrapper(
                 
                 }, // نبحث عن التراك داخل المستخدم
             {
-                $push: { "startedTracks.$.courses": { courseId } } // إضافة الكورس داخل التراك المحدد
+                $addToSet: { "startedTracks.$.courses": { course:courseId } } // إضافة الكورس داخل التراك المحدد
             },
             { new: true }
         )
-        .populate("startedTracks.track") // Populate Track
-        .populate("startedTracks.courses.course") // Populate Course
-        .populate("startedTracks.courses.submittedTasks.task"); // Populate Task
-      
+        .populate({
+            path: "startedTracks.track",
+            populate: {
+                path: "courses", // يملأ الكورسات داخل التراك
+                populate: {
+                    path: "tasks", // يملأ التاسكات داخل الكورسات
+                }
+            }
+        })
+        .populate({
+            path: "startedTracks.courses.course",
+            populate: {
+                path: "tasks", // يملأ التاسكات داخل الكورس
+            }
+        })
+        .populate("startedTracks.courses.submittedTasks.task"); 
 
         if(!MEMBER){
             MEMBER=await member.findOneAndUpdate(
@@ -567,7 +591,23 @@ const submitTask=asyncWrapper(
                     { "course.course": courseId }
                 ]
              }
-        );
+        )
+        .populate({
+            path: "startedTracks.track",
+            populate: {
+                path: "courses", // يملأ الكورسات داخل التراك
+                populate: {
+                    path: "tasks", // يملأ التاسكات داخل الكورسات
+                }
+            }
+        })
+        .populate({
+            path: "startedTracks.courses.course",
+            populate: {
+                path: "tasks", // يملأ التاسكات داخل الكورس
+            }
+        })
+        .populate("startedTracks.courses.submittedTasks.task"); ;
 
   
    

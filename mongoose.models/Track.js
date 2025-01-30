@@ -17,7 +17,10 @@ const taskSchema = new mongoose.Schema({
 const courseSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: String,
-  tasks: [taskSchema], // كل كورس يحتوي على مجموعة من التاسكات
+  tasks: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Task' }
+
+  ], // كل كورس يحتوي على مجموعة من التاسكات
   members:[
    { type: mongoose.Schema.Types.ObjectId, ref: 'Member' }
   ]
@@ -26,7 +29,10 @@ const courseSchema = new mongoose.Schema({
 const trackSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: String,
-  courses: [courseSchema], // كل تراك يحتوي على مجموعة من الكورسات
+  courses: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Course' }
+
+  ], // كل تراك يحتوي على مجموعة من الكورسات
   committee:String,
 
 });
