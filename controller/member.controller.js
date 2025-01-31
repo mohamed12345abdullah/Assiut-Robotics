@@ -725,7 +725,7 @@ const submitTask=asyncWrapper(
   
    
         if(!MEMBER){
-            const error=createError(401,httpStatusText.FAIL,"this task is already submited")
+            const error=createError(200,httpStatusText.FAIL,"this task is already submited")
             throw error
         }
         res.status(200).json({message:"submitted successfully",data:MEMBER});
