@@ -9,11 +9,11 @@ const httpStatusText=require('../utils/httpStatusText')
 // ===================== tracks ========================
 const addTrack=asyncWrapper(
     async (req, res) => {
-        //   const email=req.decoded.email;
-        //   const committee=await member.findOne({email},{committee:true,_id});
-        //   console.log(committee);
+          const email=req.decoded.email;
+          const committee=await member.findOne({email},{committee:true,_id});
+          console.log(committee);
           const { name, description } = req.body;
-          const newTrack = new Track({ name, description,committee:'web' });
+          const newTrack = new Track({ name, description,committee });
           await newTrack.save();
           res.status(201).json({ message: 'Track added successfully', track: newTrack });
    
