@@ -21,9 +21,7 @@ const addTrack=asyncWrapper(
 )
 
 const getAllTracks=asyncWrapper(
-    async(req,res)=>{
-        
-            
+    async(req,res)=>{            
         const AllTracks=await Track.find({})
         .populate({
             path:'courses',
@@ -296,6 +294,10 @@ const deleteTask=asyncWrapper(
 
       }
 )
+
+
+
+
 
 module.exports={
     addTrack,

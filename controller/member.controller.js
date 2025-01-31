@@ -654,6 +654,9 @@ const joinCourse=asyncWrapper(
             const error=createError(400,httpStatusText.FAIL,"you are already joind to this course")
             throw error
         }
+        const course=await Course.findOne({_id:courseId})
+        course.members.push(MEMBER._id);
+        await course.save();
         res.status(200).json({message:"joined to course successfully",data:MEMBER});
         
         
@@ -729,6 +732,37 @@ const submitTask=asyncWrapper(
         
     }
 )
+
+
+const getMembersJoinedCourse = asyncWrapper(
+    async (req, res, next) => {
+        const courseId = req.params.courseId;
+
+        // التحقق من أن الكورس موجود
+        const course = await Course.findById(courseId).populate({
+            path: "members",
+            populate: {
+                path: "startedTracks.track",
+                populate: {
+                    path: "courses",
+                    populate: {
+                        path: "tasks"
+                    }
+                }
+            }
+        });
+
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+
+        res.status(200).json({
+            message: "Data retrieved successfully",
+            members: course.members
+        });
+    }
+);
+
 module.exports = {
     getCommittee,
     register,
@@ -748,7 +782,8 @@ module.exports = {
     editTask,
     deleteTask,
     joinCourse,
-    submitTask
+    submitTask,
+    getMembersJoinedCourse
 };
 
 

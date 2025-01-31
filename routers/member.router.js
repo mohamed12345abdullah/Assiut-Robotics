@@ -107,6 +107,9 @@ Router.route("/hr").post(JWT.verify, memberController.controlHR);
 
 Router.route("/joinCourse").post(JWT.verify,memberController.joinCourse)
 
+Router.route("/getMembersJoinedCourse/:courseId").get(memberController.getMembersJoinedCourse)
+
+
 Router.route("/submitTask").post(JWT.verify,memberController.submitTask)
 
 Router.route("/verifyOTP").post(otp.verifyOtp);
