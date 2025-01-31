@@ -763,6 +763,65 @@ const getMembersJoinedCourse = asyncWrapper(
     }
 );
 
+
+
+
+
+
+
+
+const updateTaskEvaluation = async (req, res) => {
+  try {
+    const { memberId, taskId, submissionId } = req.params;
+    const { rate, notes } = req.body;
+
+    // البحث عن العضو بالتراك والكورس المحددين
+    const Member = await member.findById(memberId);
+    if (!Member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // البحث عن التراك الذي يحتوي على الكورس المحدد
+    const track = Member.startedTracks.find(track => 
+      track.courses.some(course => course.submittedTasks.some(task => task._id.toString() === submissionId))
+    );
+
+    if (!track) {
+      return res.status(404).json({ message: 'Track not found for this member' });
+    }
+
+    // البحث عن الكورس المحدد داخل التراك
+    const course = track.courses.find(c => 
+      c.submittedTasks.some(task => task._id.toString() === submissionId)
+    );
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found for this member' });
+    }
+
+    // البحث عن الـ Task المحدد داخل الكورس
+    const submittedTask = course.submittedTasks.find(task => task._id.toString() === submissionId);
+
+    if (!submittedTask) {
+      return res.status(404).json({ message: 'Submitted task not found' });
+    }
+
+    // تحديث التقييم والملاحظات
+    submittedTask.rate = rate;
+    submittedTask.notes = notes;
+
+    // حفظ التعديلات في قاعدة البيانات
+    await Member.save();
+
+    res.status(200).json({ message: 'Task evaluation updated successfully', submittedTask });
+
+  } catch (error) {
+    console.error('Error updating task evaluation:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 module.exports = {
     getCommittee,
     register,
@@ -783,7 +842,8 @@ module.exports = {
     deleteTask,
     joinCourse,
     submitTask,
-    getMembersJoinedCourse
+    getMembersJoinedCourse,
+    updateTaskEvaluation
 };
 
 

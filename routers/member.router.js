@@ -112,6 +112,9 @@ Router.route("/getMembersJoinedCourse/:courseId").get(memberController.getMember
 
 Router.route("/submitTask").post(JWT.verify,memberController.submitTask)
 
+Router.route("/:memberId/tasks/:taskId/submissions/:submissionId")
+        .put(memberController.updateTaskEvaluation)
+
 Router.route("/verifyOTP").post(otp.verifyOtp);
 
 Router.route("/changePass").post(memberController.changePass);
