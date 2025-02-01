@@ -930,7 +930,7 @@ const rateMemberTask = asyncWrapper(
 
             // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
             if (hrEvaluation == -1) {
-                if(admin.role!='head'){
+                if(admin.role!='head' && admin.role!='vice'){
                     const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
                     throw error;
                 }
