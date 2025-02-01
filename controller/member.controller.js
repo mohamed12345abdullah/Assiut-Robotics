@@ -964,7 +964,7 @@ const submitMemberTask = async (req, res) => {
         task.submissionLink = submissionUrl;
 
         // Save the updated member data
-        await member.save();
+        await Member.save();
 
         res.status(200).json({ message: "Task submitted successfully.", task });
     } catch (error) {
