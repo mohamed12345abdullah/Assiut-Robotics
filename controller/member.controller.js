@@ -930,12 +930,22 @@ const rateMemberTask = asyncWrapper(
 
             // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
             if (hrEvaluation == -1) {
+                if(admin.role!='head'){
+                    const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
+                    throw error;
+                }
+
                 task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
 
 
 
                 // task.rate = task.hrEvaluation+task.headEvaluation;
             } else if (headEvaluation == -1) {
+                if(admin.role!= `HR ${Member.committee}`){
+                    const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
+                    throw error;
+                }
+
                 task.hrEvaluation = task.hrPercent * task.points * hrEvaluation / 10000;
 
                 // task.rate = task.hrEvaluation+task.headEvaluation;
