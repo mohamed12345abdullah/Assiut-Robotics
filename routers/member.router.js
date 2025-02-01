@@ -182,13 +182,13 @@ Router.post("/members/:memberId/rateTask/:taskId", async (req, res) => {
 
     // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
     if (hrEvaluation == -1) {
-        task.headEvaluation = task.headPercent * task.points* headEvaluation;
+        task.headEvaluation = task.headPercent * task.points* headEvaluation/100;
 
 
         
         // task.rate = task.hrEvaluation+task.headEvaluation;
     }else if (headEvaluation == -1) {
-        task.hrEvaluation=task.hrPercent*task.points*hrEvaluation;
+        task.hrEvaluation=task.hrPercent*task.points*hrEvaluation/100;
 
         // task.rate = task.hrEvaluation+task.headEvaluation;
     }
