@@ -893,7 +893,7 @@ const deleteTask = asyncWrapper(
 
 const rateMemberTask = asyncWrapper(
     async (req, res) => {
-        try {
+
             const { headEvaluation, hrEvaluation } = req.body;
             const { taskId, memberId } = req.params;
             const email = req.decoded.email;
@@ -910,13 +910,17 @@ const rateMemberTask = asyncWrapper(
             }
 
             if (!Member) {
+                const error=createError(400,httpStatusText.FAIL,"member not found ")
+                throw error;
                 return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
             }
 
             const task = Member.tasks.id(taskId);
 
             if (!task || typeof task.points !== "number" || task.points <= 0) {
-                return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
+                const error=createError(400,httpStatusText.FAIL,"pints not a number ")
+                throw error;
+                // return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
             }
 
             // تحديث تقييم Head
@@ -946,10 +950,7 @@ const rateMemberTask = asyncWrapper(
             await Member.save();
 
             res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ success: false, message: "حدث خطأ أثناء التحديث" });
-        }
+
     }
 )
 
