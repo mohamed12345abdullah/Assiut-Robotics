@@ -151,4 +151,65 @@ Router.route("/changeProfileImage").post(
         }
     }, memberController.changeProfileImage
 )
+
+
+
+
+
+const Member = require("../mongoose.models/member");
+
+Router.post("/members/:memberId/rateTask/:taskId", async (req, res) => {
+  try {
+    const { headEvaluation ,hrEvaluation } = req.body;
+    const {taskId,memberId} =req.params;
+
+    const member = await Member.findOne({ _id: memberId, "tasks._id": taskId });
+
+    if (!member) {
+      return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
+    }
+
+    const task = member.tasks.id(taskId);
+
+    if (!task || typeof task.points !== "number" || task.points <= 0) {
+      return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
+    }
+
+    // تحديث تقييم Head
+    
+    
+    
+
+    // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
+    if (hrEvaluation == -1) {
+        task.headEvaluation = task.headPercent * task.points* headEvaluation;
+
+
+        
+        // task.rate = task.hrEvaluation+task.headEvaluation;
+    }else if (headEvaluation == -1) {
+        task.hrEvaluation=task.hrPercent*task.points*hrEvaluation;
+
+        // task.rate = task.hrEvaluation+task.headEvaluation;
+    }
+
+    if(task.hrEvaluation  != -1   &&  task.headEvaluation  != -1){
+            task.rate = task.hrEvaluation  +  task.headEvaluation;
+
+    }
+
+
+    await member.save();
+
+    res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "حدث خطأ أثناء التحديث" });
+  }
+});
+
+// module.exports = router;
+
+
+
 module.exports = Router;
