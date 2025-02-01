@@ -938,13 +938,13 @@ const submitMemberTask = async (req, res) => {
         }
 
         // Find the member
-        const member = await Member.find({email});
-        if (!member) {
+        const Member = await member.find({email});
+        if (!Member) {
             return res.status(404).json({ message: "Member not found." });
         }
 
         // Find the task inside tasks array
-        const task = member.tasks.id(taskId);
+        const task = Member.tasks.id(taskId);
         if (!task) {
             return res.status(404).json({ message: "Task not found." });
         }
