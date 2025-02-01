@@ -74,6 +74,17 @@ const register =asyncWrapper( async (req, res,next) => {
             throw(error);
         }
         if(oldEmail){
+            const generateToken= jwt.generateToken()
+            const token = await generateToken({  email }, "1h");
+            // https://assiut-robotics-zeta.vercel.app/
+            const token_url=`https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
+            console.log("req.body is : ", req.body);
+            await sendEmail({
+                email: email,
+                subject: "Confirm Your Email - Assiut Robotics Team",
+                text: "Verify Email",
+                html:htmlContent_ofVrify.replace('{{token_url}}',token_url)            ,
+            });
             const error=createError(400, httpStatusText.FAIL,"This email is already exist. verify your email by click on the link on your email")
             throw(error);
         }
@@ -96,7 +107,7 @@ const register =asyncWrapper( async (req, res,next) => {
         })
         await newMember.save();
         const generateToken= jwt.generateToken()
-        const token = await generateToken({  email }, "10m");
+        const token = await generateToken({  email }, "1h");
         // https://assiut-robotics-zeta.vercel.app/
         const token_url=`https://assiut-robotics-zeta.vercel.app/members/verifyEmail/${token}`
         console.log("req.body is : ", req.body);
