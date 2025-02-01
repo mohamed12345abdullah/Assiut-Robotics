@@ -7,7 +7,6 @@ const multer = require("multer");
 const otp = require("../utils/otp");
 
 
-
 const { uploadToCloud } = require("../utils/cloudinary");
 
 
@@ -95,11 +94,7 @@ Router.route("/changePassword").post(memberController.changePass);
 
 Router.route("/get/:com").get(memberController.getCommittee)
 
-Router.route("/:memberId/addTask").post(memberController.addTask)
 
-Router.route("/:memberId/editTask/:taskId").put(memberController.editTask)
-
-Router.route("/:memberId/deleteTask/:taskId").delete(memberController.deleteTask )
 
 Router.route("/changeHead").post(JWT.verify, memberController.changeHead);
 
@@ -156,59 +151,22 @@ Router.route("/changeProfileImage").post(
 
 
 
-const Member = require("../mongoose.models/member");
+// const Member = require("../mongoose.models/member");
 
-Router.post("/members/:memberId/rateTask/:taskId", async (req, res) => {
-  try {
-    const { headEvaluation ,hrEvaluation } = req.body;
-    const {taskId,memberId} =req.params;
+Router.route("/:memberId/addTask").post(JWT.verify,memberController.addTask)
 
-    const member = await Member.findOne({ _id: memberId, "tasks._id": taskId });
+Router.route("/:memberId/editTask/:taskId").put(JWT.verify,memberController.editTask)
 
-    if (!member) {
-      return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
-    }
+Router.route("/:memberId/deleteTask/:taskId").delete(JWT.verify,memberController.deleteTask )
 
-    const task = member.tasks.id(taskId);
+Router.post("/members/:memberId/rateTask/:taskId",JWT.verify,memberController.rateMemberTask);
 
-    if (!task || typeof task.points !== "number" || task.points <= 0) {
-      return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
-    }
-
-    // تحديث تقييم Head
-    
-    
-    
-
-    // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
-    if (hrEvaluation == -1) {
-        task.headEvaluation = task.headPercent * task.points* headEvaluation/100;
+Router.put("/submitMemberTask/:taskId",JWT.verify, memberController.submitMemberTask);
 
 
-        
-        // task.rate = task.hrEvaluation+task.headEvaluation;
-    }else if (headEvaluation == -1) {
-        task.hrEvaluation=task.hrPercent*task.points*hrEvaluation/100;
-
-        // task.rate = task.hrEvaluation+task.headEvaluation;
-    }
-
-    if(task.hrEvaluation  != -1   &&  task.headEvaluation  != -1){
-            task.rate = task.hrEvaluation  +  task.headEvaluation;
-
-    }
 
 
-    await member.save();
 
-    res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "حدث خطأ أثناء التحديث" });
-  }
-});
-
-// module.exports = router;
 
 
 

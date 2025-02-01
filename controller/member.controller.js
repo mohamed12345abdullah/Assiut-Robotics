@@ -24,6 +24,10 @@ const otp = require("../utils/otp");
 
 const strongPassword=require("../utils/strongPass");
 const createError=require("../utils/createError")
+
+const authRole=require('../middlleware/authorizeRoles')
+
+
 const { decode } = require("jsonwebtoken");
 const fs=require("fs")
 const path = require('path');
@@ -517,78 +521,6 @@ const changeProfileImage=asyncWrapper(async(req,res)=>{
 })
 
 
-const addTask=asyncWrapper(
-    async (req,res,next)=>{
-        const ID=req.params.memberId;
-        const task=req.body;
-        const Member=await member.findById(ID);
-        if (!Member) {
-            const error = createError(404, "Member or Task not found");
-            throw error;
-        }
-
-        Member.tasks.push(task);
-        Member.save()
-        res.status(200).json({status:httpStatusText.SUCCESS,message:"add task successfully"})
-    }
-)
-
-
-
-const editTask=asyncWrapper(
-    async (req,res,next)=>{
-        const {taskId,memberId}=req.params;
-        const update=req.body;
-        const updatedMember = await member.findOneAndUpdate(
-            { 
-                _id: memberId, 
-                "tasks._id": taskId // البحث عن العضو والمهمة المحددة باستخدام _id
-            },
-            {
-                $set: { "tasks.$": update } // تحديث المهمة المحددة في tasks
-            },
-            { new: true } // لإرجاع العضو المحدث
-        );    
-        if (!updatedMember) {
-            const error = createError(404, "Member or Task not found");
-            throw error;
-        }
-
-        res.status(200).json({status:httpStatusText.SUCCESS,message:"edit task successfully",memberData:updatedMember})
-    }
-)
-
-
-
-const deleteTask = asyncWrapper(
-    async (req, res, next) => {
-        // const { email } = req.decoded;  // البريد الإلكتروني من JWT
-        const { memberId, taskId } = req.params;  // الـ memberId و taskId من الـ body
-        
-        // البحث عن العضو مع وجود الـ taskId في قائمة الـ tasks
-        const updatedMember = await member.findOneAndUpdate(
-            { 
-                _id: memberId, 
-                "tasks._id": taskId 
-            },
-            {
-                $pull: { "tasks": { _id: taskId } }  // إزالة المهمة من المصفوفة
-            },
-            { new: true }  // لضمان إرجاع العضو بعد التحديث
-        );
-
-        if (!updatedMember) {
-            const error = createError(404, "Member or Task not found");
-            throw error;
-        }
-
-        res.status(200).json({
-            status: "success",
-            message: "Task deleted successfully",
-            memberData: updatedMember
-        });
-    }
-);
 
 
 
@@ -763,63 +695,268 @@ const getMembersJoinedCourse = asyncWrapper(
     }
 );
 
-
-
-
-
-
-
-
 const updateTaskEvaluation = async (req, res) => {
-  try {
-    const { memberId, taskId, submissionId } = req.params;
-    const { rate, notes } = req.body;
-
-    // البحث عن العضو بالتراك والكورس المحددين
-    const Member = await member.findById(memberId);
-    if (!Member) {
-      return res.status(404).json({ message: 'Member not found' });
+    try {
+      const { memberId, taskId, submissionId } = req.params;
+      const { rate, notes } = req.body;
+  
+      // البحث عن العضو بالتراك والكورس المحددين
+      const Member = await member.findById(memberId);
+      if (!Member) {
+        return res.status(404).json({ message: 'Member not found' });
+      }
+  
+      // البحث عن التراك الذي يحتوي على الكورس المحدد
+      const track = Member.startedTracks.find(track => 
+        track.courses.some(course => course.submittedTasks.some(task => task._id.toString() === submissionId))
+      );
+  
+      if (!track) {
+        return res.status(404).json({ message: 'Track not found for this member' });
+      }
+  
+      // البحث عن الكورس المحدد داخل التراك
+      const course = track.courses.find(c => 
+        c.submittedTasks.some(task => task._id.toString() === submissionId)
+      );
+  
+      if (!course) {
+        return res.status(404).json({ message: 'Course not found for this member' });
+      }
+  
+      // البحث عن الـ Task المحدد داخل الكورس
+      const submittedTask = course.submittedTasks.find(task => task._id.toString() === submissionId);
+  
+      if (!submittedTask) {
+        return res.status(404).json({ message: 'Submitted task not found' });
+      }
+  
+      // تحديث التقييم والملاحظات
+      submittedTask.rate = rate;
+      submittedTask.notes = notes;
+  
+      // حفظ التعديلات في قاعدة البيانات
+      await Member.save();
+  
+      res.status(200).json({ message: 'Task evaluation updated successfully', submittedTask });
+  
+    } catch (error) {
+      console.error('Error updating task evaluation:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
+  };
+  
 
-    // البحث عن التراك الذي يحتوي على الكورس المحدد
-    const track = Member.startedTracks.find(track => 
-      track.courses.some(course => course.submittedTasks.some(task => task._id.toString() === submissionId))
-    );
 
-    if (!track) {
-      return res.status(404).json({ message: 'Track not found for this member' });
+const addTask=asyncWrapper(
+    async (req,res,next)=>{
+        const ID=req.params.memberId;
+        const task=req.body;
+        const Member=await member.findById(ID);
+        if (!Member) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
+        const email=req.decoded.email;  
+        const admin=await member.findOne({email})
+        if( admin.role!='leader' && 
+            admin.role!='viceLeader'&&
+             ( admin.role!='head'|| admin.committee != Member.committee )&&
+            admin.role!=`HR ${Member.committee}` 
+          ){
+            const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
+            throw error;
+           } 
+
+        
+
+        Member.tasks.push(task);
+        Member.save()
+        res.status(200).json({status:httpStatusText.SUCCESS,message:"add task successfully"})
     }
+)
 
-    // البحث عن الكورس المحدد داخل التراك
-    const course = track.courses.find(c => 
-      c.submittedTasks.some(task => task._id.toString() === submissionId)
-    );
 
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found for this member' });
+
+const editTask=asyncWrapper(
+    async (req,res,next)=>{
+        const {taskId,memberId}=req.params;
+        const update=req.body;
+
+        const Member=await member.findById(memberId);
+        const email=req.decoded.email;  
+        const admin=await member.findOne({email})
+        if( admin.role!='leader' && 
+            admin.role!='viceLeader'&&
+             ( admin.role!='head'|| admin.committee != Member.committee )&&
+            admin.role!=`HR ${Member.committee}` 
+          ){
+            const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
+            throw error;
+           } 
+
+        const updatedMember = await member.findOneAndUpdate(
+            { 
+                _id: memberId, 
+                "tasks._id": taskId // البحث عن العضو والمهمة المحددة باستخدام _id
+            },
+            {
+                $set: { "tasks.$": update } // تحديث المهمة المحددة في tasks
+            },
+            { new: true } // لإرجاع العضو المحدث
+        );    
+        if (!updatedMember) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
+        res.status(200).json({status:httpStatusText.SUCCESS,message:"edit task successfully",memberData:updatedMember})
     }
+)
 
-    // البحث عن الـ Task المحدد داخل الكورس
-    const submittedTask = course.submittedTasks.find(task => task._id.toString() === submissionId);
 
-    if (!submittedTask) {
-      return res.status(404).json({ message: 'Submitted task not found' });
+
+const deleteTask = asyncWrapper(
+    async (req, res, next) => {
+        // const { email } = req.decoded;  // البريد الإلكتروني من JWT
+        const { memberId, taskId } = req.params;  // الـ memberId و taskId من الـ body
+        
+        const Member=await member.findById(memberId);
+        const email=req.decoded.email;  
+        const admin=await member.findOne({email})
+        if( admin.role!='leader' && 
+            admin.role!='viceLeader'&&
+             ( admin.role!='head'|| admin.committee != Member.committee )&&
+            admin.role!=`HR ${Member.committee}` 
+          ){
+            const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
+            throw error;
+           } 
+
+        // البحث عن العضو مع وجود الـ taskId في قائمة الـ tasks
+        const updatedMember = await member.findOneAndUpdate(
+            { 
+                _id: memberId, 
+                "tasks._id": taskId 
+            },
+            {
+                $pull: { "tasks": { _id: taskId } }  // إزالة المهمة من المصفوفة
+            },
+            { new: true }  // لضمان إرجاع العضو بعد التحديث
+        );
+
+        if (!updatedMember) {
+            const error = createError(404, "Member or Task not found");
+            throw error;
+        }
+
+        res.status(200).json({
+            status: "success",
+            message: "Task deleted successfully",
+            memberData: updatedMember
+        });
     }
+);
 
-    // تحديث التقييم والملاحظات
-    submittedTask.rate = rate;
-    submittedTask.notes = notes;
 
-    // حفظ التعديلات في قاعدة البيانات
-    await Member.save();
+const rateMemberTask=asyncWrapper(
+    async (req, res) => {
+        try {
+          const { headEvaluation ,hrEvaluation } = req.body;
+          const {taskId,memberId} =req.params;
+          const email=req.decoded.email;  
+          const admin=await member.findOne({email})
+          const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
+           if( admin.role!='leader' && 
+            admin.role!='viceLeader'&&
+             ( admin.role!='head'&& admin.committee != Member.committee )&&
+            admin.role!=`HR ${Member.committee}` 
+          ){
+            const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
+            throw error;
+           } 
 
-    res.status(200).json({ message: 'Task evaluation updated successfully', submittedTask });
+          if (!Member) {
+            return res.status(404).json({ success: false, message: "المهمة أو العضو غير موجود" });
+          }
+      
+          const task = Member.tasks.id(taskId);
+      
+          if (!task || typeof task.points !== "number" || task.points <= 0) {
+            return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
+          }
+      
+          // تحديث تقييم Head
+          
+          
+          
+      
+          // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
+          if (hrEvaluation == -1) {
+              task.headEvaluation = task.headPercent * task.points* headEvaluation/100;
+      
+      
+              
+              // task.rate = task.hrEvaluation+task.headEvaluation;
+          }else if (headEvaluation == -1) {
+              task.hrEvaluation=task.hrPercent*task.points*hrEvaluation/100;
+      
+              // task.rate = task.hrEvaluation+task.headEvaluation;
+          }
+      
+          if(task.hrEvaluation  != -1   &&  task.headEvaluation  != -1){
+                  task.rate = task.hrEvaluation  +  task.headEvaluation;
+      
+          }
+      
+      
+          await Member.save();
+      
+          res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ success: false, message: "حدث خطأ أثناء التحديث" });
+        }
+      }
+)
 
-  } catch (error) {
-    console.error('Error updating task evaluation:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+
+
+const submitMemberTask = async (req, res) => {
+    try {
+        const {  taskId } = req.params;
+        const { submissionUrl } = req.body;
+        const email=req.decoded.email;
+        // Validate input
+        if (!submissionUrl) {
+            return res.status(400).json({ message: "Submission URL is required." });
+        }
+
+        // Find the member
+        const member = await Member.find({email});
+        if (!member) {
+            return res.status(404).json({ message: "Member not found." });
+        }
+
+        // Find the task inside tasks array
+        const task = member.tasks.id(taskId);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found." });
+        }
+
+        // Update the submission link
+        task.submissionLink = submissionUrl;
+
+        // Save the updated member data
+        await member.save();
+
+        res.status(200).json({ message: "Task submitted successfully.", task });
+    } catch (error) {
+        res.status(500).json({ message: "Server error.", error: error.message });
+    }
 };
+
 
 
 module.exports = {
@@ -840,6 +977,9 @@ module.exports = {
     addTask,
     editTask,
     deleteTask,
+    submitMemberTask,
+    rateMemberTask,
+
     joinCourse,
     submitTask,
     getMembersJoinedCourse,
