@@ -949,7 +949,7 @@ const submitMemberTask = async (req, res) => {
         }
 
         // Find the member
-        const Member = await member.find({email});
+        const Member = await member.findOne({email});
         if (!Member) {
             return res.status(404).json({ message: "Member not found." });
         }
@@ -968,9 +968,11 @@ const submitMemberTask = async (req, res) => {
 
         res.status(200).json({ message: "Task submitted successfully.", task });
     } catch (error) {
+        console.log(error.message);
+        
         res.status(500).json({ message: "Server error.", error: error.message });
     }
-};
+}; 
 
 
 
