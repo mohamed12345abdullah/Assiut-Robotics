@@ -873,8 +873,8 @@ const rateMemberTask=asyncWrapper(
           const Member = await member.findOne({ _id: memberId, "tasks._id": taskId });
            if( admin.role!='leader' && 
             admin.role!='viceLeader'&&
-             ( admin.role!='head'&& admin.committee != Member.committee )&&
-             ( admin.role!='vice'&& admin.committee != Member.committee )&&
+             ( admin.role!='head'|| admin.committee != Member.committee )&&
+             ( admin.role!='vice'|| admin.committee != Member.committee )&&
             admin.role!=`HR ${Member.committee}` 
           ){
             const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
