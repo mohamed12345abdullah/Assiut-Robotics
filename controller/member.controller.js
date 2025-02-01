@@ -926,13 +926,13 @@ const rateMemberTask = asyncWrapper(
 
             // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
             if (hrEvaluation == -1) {
-                task.headEvaluation = task.headPercent * task.points * headEvaluation / 100;
+                task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
 
 
 
                 // task.rate = task.hrEvaluation+task.headEvaluation;
             } else if (headEvaluation == -1) {
-                task.hrEvaluation = task.hrPercent * task.points * hrEvaluation / 100;
+                task.hrEvaluation = task.hrPercent * task.points * hrEvaluation / 10000;
 
                 // task.rate = task.hrEvaluation+task.headEvaluation;
             }
