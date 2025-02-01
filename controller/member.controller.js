@@ -763,6 +763,7 @@ const addTask=asyncWrapper(
         if( admin.role!='leader' && 
             admin.role!='viceLeader'&&
              ( admin.role!='head'|| admin.committee != Member.committee )&&
+             ( admin.role!='vice'|| admin.committee != Member.committee )&&
             admin.role!=`HR ${Member.committee}` 
           ){
             const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
@@ -790,6 +791,7 @@ const editTask=asyncWrapper(
         if( admin.role!='leader' && 
             admin.role!='viceLeader'&&
              ( admin.role!='head'|| admin.committee != Member.committee )&&
+             ( admin.role!='vice'|| admin.committee != Member.committee )&&
             admin.role!=`HR ${Member.committee}` 
           ){
             const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
@@ -828,6 +830,7 @@ const deleteTask = asyncWrapper(
         if( admin.role!='leader' && 
             admin.role!='viceLeader'&&
              ( admin.role!='head'|| admin.committee != Member.committee )&&
+             ( admin.role!='vice'|| admin.committee != Member.committee )&&
             admin.role!=`HR ${Member.committee}` 
           ){
             const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
@@ -871,6 +874,7 @@ const rateMemberTask=asyncWrapper(
            if( admin.role!='leader' && 
             admin.role!='viceLeader'&&
              ( admin.role!='head'&& admin.committee != Member.committee )&&
+             ( admin.role!='vice'&& admin.committee != Member.committee )&&
             admin.role!=`HR ${Member.committee}` 
           ){
             const error=createError(401,httpStatusText.FAIL,'Access denied. Insufficient permissions.')
