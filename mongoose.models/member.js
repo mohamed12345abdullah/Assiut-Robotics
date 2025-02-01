@@ -38,8 +38,11 @@ const memberTaskSchema = new mongoose.Schema({
   description: String,
   startDate: Date,
   deadline:Date,
+  submissionDate:Date,
   taskUrl:String,
-  submissionLink: String,
+  submissionLink:{type:String,
+    default:"*"
+  },
   headEvaluation:{
     type:Number,
     default:-1
