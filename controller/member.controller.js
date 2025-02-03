@@ -203,7 +203,23 @@ const login = asyncWrapper(async (req, res) => {
 
 const getAllMembers = asyncWrapper(async (req, res) => {
 
-    let members = await member.find({}, { password: false });
+    let members = await member.find({}, { password: false })
+    .populate({
+        path: "startedTracks.track",
+        populate: {
+            path: "courses", // يملأ الكورسات داخل التراك
+            populate: {
+                path: "tasks", // يملأ التاسكات داخل الكورسات
+            }
+        }
+    })
+    .populate({
+        path: "startedTracks.courses.course",
+        populate: {
+            path: "tasks", // يملأ التاسكات داخل الكورس
+        }
+    })
+    .populate("startedTracks.courses.submittedTasks.task");;
 
     res.status(200).json({
         status: httpStatusText.SUCCESS,
