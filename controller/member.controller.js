@@ -819,16 +819,7 @@ const editTask = asyncWrapper(
             startDate,
             taskUrl,
             title, } = req.body;
-
-        const update = {
-            deadline,
-            description,
-            headPercent,
-            hrPercent,
-            points,
-            startDate,
-            taskUrl,
-            title, }   
+  
         const Member = await member.findById(memberId);
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
@@ -842,20 +833,24 @@ const editTask = asyncWrapper(
             throw error;
         }
 
-        const updatedMember = await member.findOneAndUpdate(
+        const task = await member.findOne(
             {
                 _id: memberId,
                 "tasks._id": taskId // البحث عن العضو والمهمة المحددة باستخدام _id
-            },
-            {
-                $set: { "tasks.$": update } // تحديث المهمة المحددة في tasks
-            },
-            { new: true } // لإرجاع العضو المحدث
-        );
-        if (!updatedMember) {
+            });
+
+            
+        if (!task) {
             const error = createError(404, "Member or Task not found");
             throw error;
         }
+        task.title=title;
+        task.description=description;
+        task.startDate=startDate;
+        task.deadline=deadline;
+        task.points=points;
+        task.taskUrl=taskUrl;
+        await task.save();
 
         res.status(200).json({ status: httpStatusText.SUCCESS, message: "edit task successfully", memberData: updatedMember })
     }
