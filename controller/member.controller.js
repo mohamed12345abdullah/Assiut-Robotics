@@ -960,7 +960,7 @@ const rateMemberTask = asyncWrapper(
                 task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
                 if(task.submissionDate>task.deadline){
 
-                    const different=(task.submissionDate-task.deadline )/(1000*60*60*24);
+                    const different= Math.ceil(  (task.submissionDate-task.deadline )/(1000*60*60*24)   );
                     task.deadlinePercent-=different*2;
 
                 }
