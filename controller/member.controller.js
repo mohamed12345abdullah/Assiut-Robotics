@@ -37,22 +37,33 @@ const path = require('path');
 const filePath = path.join(__dirname, '../public/verifyEmail.html');
 
 const test = async () => {
-    console.log("updateeeeeeeeeeeeeeeeeeeeeeeee")
-    const members = await member.find();
-    let i = 0;
-    members.forEach(async (memb) => {
-        if (memb.name == "tset") {
-            console.log("memberrr ", i, memb)
-            i++;
-            // memb.verified=true;
-            await member.findOneAndDelete({ name: "tset" })
-            await member.save()
-            memb.role = "member";
-            // await memb.save()
-            // console.log(memb)
-        }
+    console.log("updateeeeeeeeeeeeeeeeeeeeeeeee")           
 
-    })
+    // const members = await member.find();
+    let i = 0;
+    // const members = await member.find({  });
+// console.log(members); // تأكد من وجود المستندات التي تحتوي على الحقل hrEvaluation
+const result = await member.updateMany(
+    { "tasks.hrEvaluation": { $exists: true } }, // التأكد من وجود الحقل
+    { $unset: { "tasks.$[].hrEvaluation": '' } } // حذف الحقل من جميع المهام
+  );
+      console.log(result); // تأكد من النتيجة
+      console.log("result is s : ",result);
+    // members.forEach(async (memb) => {
+    //     if (memb.name == "tset") {
+    //         console.log("memberrr ", i, memb)
+    //         i++;
+    //         // memb.verified=true;
+    //         await member.findOneAndDelete({ name: "tset" })
+    //         await member.save()
+    //         memb.role = "member";
+    //         // await memb.save()
+    //         // console.log(memb)
+        // }
+
+    // }
+
+// )
 
 
 
@@ -778,7 +789,13 @@ const updateTaskEvaluation = async (req, res) => {
 const addTask = asyncWrapper(
     async (req, res, next) => {
         const ID = req.params.memberId;
-        const task = req.body;
+        const {
+            deadline,
+            description,
+            points,
+            startDate,
+            taskUrl,
+            title, } = req.body;
         const Member = await member.findById(ID);
         if (!Member) {
             const error = createError(404, "Member or Task not found");
@@ -799,7 +816,13 @@ const addTask = asyncWrapper(
 
 
 
-        Member.tasks.push(task);
+        Member.tasks.push( {
+            deadline,
+            description,
+            points,
+            startDate,
+            taskUrl,
+            title, });
         Member.save()
         res.status(200).json({ status: httpStatusText.SUCCESS, message: "add task successfully" })
     }
@@ -813,8 +836,6 @@ const editTask = asyncWrapper(
         const {
             deadline,
             description,
-            headPercent,
-            hrPercent,
             points,
             startDate,
             taskUrl,
@@ -833,11 +854,8 @@ const editTask = asyncWrapper(
             throw error;
         }
 
-        const task = await member.findOne(
-            {
-                _id: memberId,
-                "tasks._id": taskId // البحث عن العضو والمهمة المحددة باستخدام _id
-            });
+        const task = Member.tasks.id(taskId);
+
 
             
         if (!task) {
@@ -850,9 +868,11 @@ const editTask = asyncWrapper(
         task.deadline=deadline;
         task.points=points;
         task.taskUrl=taskUrl;
-        await task.save();
+        await Member.save();
 
-        res.status(200).json({ status: httpStatusText.SUCCESS, message: "edit task successfully", memberData: updatedMember })
+        console.log(Member)
+        console.log(task)
+        res.status(200).json({ status: httpStatusText.SUCCESS, message: "edit task successfully", memberData: Member })
     }
 )
 
@@ -904,8 +924,9 @@ const deleteTask = asyncWrapper(
 
 const rateMemberTask = asyncWrapper(
     async (req, res) => {
-
-            const { headEvaluation, hrEvaluation } = req.body;
+ 
+          
+            const { headEvaluation} = req.body;
             const { taskId, memberId } = req.params;
             const email = req.decoded.email;
             const admin = await member.findOne({ email })
@@ -934,40 +955,18 @@ const rateMemberTask = asyncWrapper(
                 // return res.status(400).json({ success: false, message: "عدد النقاط غير صالح" });
             }
 
-            // تحديث تقييم Head
 
-
-
-
-            // التحقق مما إذا كان تقييم الـ HR موجود بالفعل
-            if (hrEvaluation == -1) {
-                if(admin.role!='head' && admin.role!='vice'){
-                    const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
-                    throw error;
-                }
 
                 task.headEvaluation = task.headPercent * task.points * headEvaluation / 10000;
+                if(task.submissionDate>task.deadline){
 
+                    const different=(task.submissionDate-task.deadline )/(1000*60*60*24);
+                    task.deadlinePercent-=different*2;
 
-
-                // task.rate = task.hrEvaluation+task.headEvaluation;
-            } else if (headEvaluation == -1) {
-                if(admin.role!= `HR ${Member.committee}`){
-                    const error = createError(401, httpStatusText.FAIL, 'Access denied. Insufficient permissions.')
-                    throw error;
                 }
+                task.deadlineEvaluation = task.deadlinePercent* task.points  / 100;
 
-                task.hrEvaluation = task.hrPercent * task.points * hrEvaluation / 10000;
-
-                // task.rate = task.hrEvaluation+task.headEvaluation;
-            }
-
-            if (task.hrEvaluation != -1 && task.headEvaluation != -1) {
-                task.rate = task.hrEvaluation + task.headEvaluation;
-
-            }
-
-
+                task.rate=task.headEvaluation+task.deadlineEvaluation;
             await Member.save();
 
             res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
@@ -976,6 +975,7 @@ const rateMemberTask = asyncWrapper(
 )
 
 
+  
 
 const submitMemberTask = async (req, res) => {
     try {

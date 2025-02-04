@@ -43,20 +43,22 @@ const memberTaskSchema = new mongoose.Schema({
   submissionLink:{type:String,
     default:"*"
   },
+
   headEvaluation:{
     type:Number,
     default:-1
   }  ,
   headPercent:{
     type:Number,
-    default:0
+    default:50
   }  ,
-  hrEvaluation:{
+  deadlineEvaluation:{
     type:Number,
-    default:-1
+    default:0
   }, 
-  hrPercent:{
+  deadlinePercent:{
     type:Number,
+    default:20,
 
   }  ,
   rate:Number,
@@ -64,10 +66,7 @@ const memberTaskSchema = new mongoose.Schema({
 
 });
 
-memberTaskSchema.pre("save", function (next) {
-  this.hrPercent = 100 - this.headPercent; // حساب نسبة الـ HR تلقائيًا
-  next();
-});
+
 
 
 
