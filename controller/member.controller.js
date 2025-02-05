@@ -868,9 +868,9 @@ const editTask = asyncWrapper(
             throw error;
         }
 
-        task.headEvaluation=   task.headEvaluation/(task.points*0.5) *points/0.5;
+        task.headEvaluation=   task.headEvaluation/(task.points*0.5) *points*0.5;
         task.deadlineEvaluation=  task.deadlineEvaluation/(task.points*0.2)    *points*0.2;
-
+        task.rate=headEvaluation+deadlineEvaluation+0.3*points;
         task.title=title;
         task.description=description;
         task.startDate=startDate;
@@ -977,7 +977,7 @@ const rateMemberTask = asyncWrapper(
                 }
                 task.deadlineEvaluation = task.deadlinePercent* task.points  / 100;
 
-                task.rate=task.headEvaluation+task.deadlineEvaluation;
+                task.rate=task.headEvaluation+task.deadlineEvaluation+0.3*points;
             await Member.save();
 
             res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
