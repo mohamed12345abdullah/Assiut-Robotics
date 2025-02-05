@@ -814,13 +814,16 @@ const addTask = asyncWrapper(
             throw error;
         }
 
-
+        let start= new Date(startDate)
+        start.setHours(0,0,0,0)
+        let end =new Date(deadline)
+        end.setHours(23,59,59,999);       
 
         Member.tasks.push( {
-            deadline,
+            deadline:end,
             description,
             points,
-            startDate,
+            startDate:start,
             taskUrl,
             title, });
         Member.save()
