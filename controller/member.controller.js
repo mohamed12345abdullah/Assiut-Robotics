@@ -870,7 +870,7 @@ const editTask = asyncWrapper(
 
         task.headEvaluation=   task.headEvaluation/(task.points*0.5) *points*0.5;
         task.deadlineEvaluation=  task.deadlineEvaluation/(task.points*0.2)    *points*0.2;
-        task.rate=headEvaluation+deadlineEvaluation+0.3*points;
+        task.rate=task.headEvaluation+TextTrackList.deadlineEvaluation+0.3*points;
         task.title=title;
         task.description=description;
         task.startDate=startDate;
