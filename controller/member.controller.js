@@ -977,7 +977,7 @@ const rateMemberTask = asyncWrapper(
                 }
                 task.deadlineEvaluation = task.deadlinePercent* task.points  / 100;
 
-                task.rate=task.headEvaluation+task.deadlineEvaluation+0.3*points;
+                task.rate=task.headEvaluation+task.deadlineEvaluation+0.3*task.points;
             await Member.save();
 
             res.status(200).json({ success: true, message: "تم تحديث تقييم Head بنجاح", task });
