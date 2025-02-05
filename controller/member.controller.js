@@ -843,7 +843,9 @@ const editTask = asyncWrapper(
             startDate,
             taskUrl,
             title, } = req.body;
-  
+            
+        // console.log("body : ",req.body);
+            
         const Member = await member.findById(memberId);
         const email = req.decoded.email;
         const admin = await member.findOne({ email })
@@ -865,16 +867,22 @@ const editTask = asyncWrapper(
             const error = createError(404, "Member or Task not found");
             throw error;
         }
+
+        task.headEvaluation=   task.headEvaluation/(task.points*0.5) *points/0.5;
+        task.deadlineEvaluation=  task.deadlineEvaluation/(task.points*0.2)    *points*0.2;
+
         task.title=title;
         task.description=description;
         task.startDate=startDate;
         task.deadline=deadline;
         task.points=points;
         task.taskUrl=taskUrl;
+
+        
         await Member.save();
 
-        console.log(Member)
-        console.log(task)
+        // console.log(Member)
+        // console.log(task)
         res.status(200).json({ status: httpStatusText.SUCCESS, message: "edit task successfully", memberData: Member })
     }
 )
