@@ -12,7 +12,7 @@ router.get("/course/:Tid/:Cid/tasks",TrackController.getTasksOfCourse)
 
 
 // إضافة تراك جديد
-router.post('/add',TrackController.addTrack
+router.post('/add',JWT.verify,TrackController.addTrack
 );
 
 // تعديل تراك
