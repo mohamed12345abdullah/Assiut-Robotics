@@ -10,7 +10,7 @@ const httpStatusText=require('../utils/httpStatusText')
 const addTrack=asyncWrapper(
     async (req, res) => {
           const email=req.decoded.email;
-          const committee=await member.findOne({email},{committee:true,_id});
+          const committee=await member.findOne({email},{committee:true});
           console.log(committee);
           const { name, description } = req.body;
           const newTrack = new Track({ name, description,committee });
