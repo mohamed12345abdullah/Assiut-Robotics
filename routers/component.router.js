@@ -1,6 +1,6 @@
 const express = require("express");
 const componentController = require("../controller/component.controller.js");
-const JWT = require("../middlleware/jwt.js");
+const JWT = require("../middleware/jwt.js");
 const Router = express.Router();
 const multer = require("multer");
 const { uploadToCloud } = require("../utils/cloudinary");

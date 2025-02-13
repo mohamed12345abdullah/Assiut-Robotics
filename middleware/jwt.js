@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const createError=require("../utils/createError")
 const httpStatusText=require("../utils/httpStatusText")
-const asyncWrapper=require("../middlleware/asyncWrapper")
+const asyncWrapper=require("../middleware/asyncWrapper")
 const fs=require("fs")
 const path = require('path');
 

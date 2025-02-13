@@ -1,7 +1,7 @@
 // const express = require('express');
 // const committeeController = require('../controller/committee.controller');
-// const validateApprovalCommitteeMember = require('../middlleware/validateApprovalCommitteeMember');
-// const checkPermissionsCommitteeMember = require('../middlleware/checkPermissionsCommitteeMember');
+// const validateApprovalCommitteeMember = require('../middleware/validateApprovalCommitteeMember');
+// const checkPermissionsCommitteeMember = require('../middleware/checkPermissionsCommitteeMember');
 
 
 // const committeeRouter = express.Router();

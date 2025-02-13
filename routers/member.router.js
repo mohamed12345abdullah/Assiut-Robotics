@@ -1,7 +1,7 @@
 const express = require("express");
 
 const memberController = require("../controller/member.controller");
-const JWT = require("../middlleware/jwt");
+const JWT = require("../middleware/jwt");
 const Router = express.Router();
 const multer = require("multer");
 const otp = require("../utils/otp");
@@ -163,7 +163,7 @@ Router.post("/members/:memberId/rateTask/:taskId",JWT.verify,memberController.ra
 
 Router.put("/submitMemberTask/:taskId",JWT.verify, memberController.submitMemberTask);
 
-
+Router.post("/update-tasks-evaluation", memberController.updateTaskEvaluations);
 
 
 

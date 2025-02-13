@@ -2,7 +2,7 @@ const speakeasy = require("speakeasy");
 const secret = speakeasy.generateSecret({ length: 20 });
 const httpStatusText = require('./httpStatusText');
 const createError = require("./createError");
-const asyncWrapper = require("../middlleware/asyncWrapper");
+const asyncWrapper = require("../middleware/asyncWrapper");
 
 const generateOtp =()=>{
 

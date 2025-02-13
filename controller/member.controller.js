@@ -6,16 +6,16 @@ const member = require("../mongoose.models/member");
 const { Track, Course, Task } = require('../mongoose.models/Track')
 
 // jwt
-const jwt = require("../middlleware/jwt");
+const jwt = require("../middleware/jwt");
 
 //bcrypt
-const bcrypt = require("../middlleware/bcrypt");
+const bcrypt = require("../middleware/bcrypt");
 
 // http status text
 const httpStatusText = require("../utils/httpStatusText");
 
 //async wrapper
-const asyncWrapper = require("../middlleware/asyncWrapper");
+const asyncWrapper = require("../middleware/asyncWrapper");
 
 // send email
 const sendEmail = require("../utils/sendEmail");
@@ -25,7 +25,7 @@ const otp = require("../utils/otp");
 const strongPassword = require("../utils/strongPass");
 const createError = require("../utils/createError")
 
-const authRole = require('../middlleware/authorizeRoles')
+const authRole = require('../middleware/authorizeRoles')
 
 
 const { decode } = require("jsonwebtoken");
@@ -1026,6 +1026,76 @@ const submitMemberTask = async (req, res) => {
 };
 
 
+const updateTaskEvaluations = asyncWrapper(async (req, res) => {
+    const { month, memberId, socialScore, behaviorScore, interactionScore } = req.body;
+
+    // Validate inputs
+    if (!memberId) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: memberId مفقود" });
+    }
+
+    if (socialScore < 0 || socialScore > 100) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: socialScore يجب أن يكون بين 0 و 100" });
+    }
+
+    if (behaviorScore < 0 || behaviorScore > 100) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: behaviorScore يجب أن يكون بين 0 و 100" });
+    }
+
+    if (interactionScore < 0 || interactionScore > 100) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: interactionScore يجب أن يكون بين 0 و 100" });
+    }
+
+    // Validate month format (YYYY-MM)
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ message: "بيانات غير صحيحة: يجب أن يكون الشهر بتنسيق YYYY-MM" });
+    }
+
+    try {
+        // Find tasks for the given month
+        const startDate = new Date(`${month}-01`);
+        const endDate = new Date(new Date(`${month}-01`).setMonth(startDate.getMonth() + 1) - 1); // Last day of the month
+
+        const tasks = await Task.find({
+            startDate: { $gte: startDate },
+            deadline: { $lte: endDate },
+            member: memberId // Ensure tasks belong to the specified member
+        });
+
+        if (tasks.length === 0) {
+            return res.status(404).json({ message: "لا توجد مهام لهذا العضو في الشهر المحدد" });
+        }
+
+        // Update evaluations for each task
+        for (const task of tasks) {
+            const taskPoints = task.score || 0; // Default to 0 if score is missing
+
+            // Calculate evaluations based on weights
+            const socialEvaluation = (socialScore / 100) * (0.1 * taskPoints);
+            const behaviorEvaluation = (behaviorScore / 100) * (0.1 * taskPoints);
+            const interactionEvaluation = (interactionScore / 100) * (0.1 * taskPoints);
+
+            // Calculate total evaluation
+            const totalEvaluation =
+                (task.headEvaluation || 0) * 0.5 + // Default to 0 if headEvaluation is missing
+                (task.deadlineEvaluation || 0) * 0.2 + // Default to 0 if deadlineEvaluation is missing
+                socialEvaluation +
+                behaviorEvaluation +
+                interactionEvaluation;
+
+            // Update task evaluation
+            task.evaluation = totalEvaluation;
+            await task.save();
+        }
+
+        res.json({ message: "تم تحديث التقييمات بنجاح" });
+    } catch (error) {
+        console.error("حدث خطأ أثناء تحديث التقييمات:", error);
+        res.status(500).json({ message: "حدث خطأ أثناء تحديث التقييمات" });
+    }
+
+});
+
 
 module.exports = {
     getCommittee,
@@ -1051,7 +1121,9 @@ module.exports = {
     joinCourse,
     submitTask,
     getMembersJoinedCourse,
-    updateTaskEvaluation
+    updateTaskEvaluation,
+    
+    updateTaskEvaluations,
 };
 
 

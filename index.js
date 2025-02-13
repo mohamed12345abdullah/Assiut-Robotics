@@ -40,6 +40,10 @@ app.use("/Tracks/api",TrackRouter);
 // const committeeRouter = require('./routers/committee.router');
 // app.use('/api/committees', committeeRouter);
 
+const loggerMiddleware = require("./middleware/loggerMiddleware");
+
+app.use(loggerMiddleware);
+
 
 app.use("*", (req, res, next) => {
   res.status(404).json({ status: 404, message: "not found Api" });
