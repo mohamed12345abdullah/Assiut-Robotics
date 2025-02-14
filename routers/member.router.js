@@ -218,7 +218,7 @@ Router.put("/submitMemberTask/:taskId",
         //   });
         } catch (error) {
           console.error('❌ خطأ أثناء رفع الملف:', error);
-          res.status(500).send('حدث خطأ أثناء رفع الملف.');
+          res.status(500).send(error.message);
         }
       },
     
