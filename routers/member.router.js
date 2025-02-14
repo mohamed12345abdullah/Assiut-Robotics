@@ -178,7 +178,7 @@ const auth = new google.auth.GoogleAuth({
 Router.put("/submitMemberTask/:taskId",
     
 
-    upload.single('file'),JWT.verify, async (req, res,next) => {
+    upload.single('file'), async (req, res,next) => {
         try {
           if (!req.file) {
             return next()
