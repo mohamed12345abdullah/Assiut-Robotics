@@ -44,7 +44,8 @@ const memberTaskSchema = new mongoose.Schema({
     type: String,
     default: "*"
   },
-
+  downloadSubmissionUrl:String,
+  submissionFileId:String,
   headEvaluation: {
     type: Number,
     default: -1

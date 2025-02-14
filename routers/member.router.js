@@ -64,10 +64,12 @@ const fileFilter = (req, file, cb) => {
 };
 
 // Multer middleware
-const upload = multer({
-    storage: diskStorage,
-    fileFilter,
-});
+// const upload = multer({
+//     storage: diskStorage,
+//     fileFilter,
+// });
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 
 Router.route("/register").post(memberController.register);
@@ -161,11 +163,125 @@ Router.route("/:memberId/deleteTask/:taskId").delete(JWT.verify,memberController
 
 Router.post("/members/:memberId/rateTask/:taskId",JWT.verify,memberController.rateMemberTask);
 
-Router.put("/submitMemberTask/:taskId",JWT.verify, memberController.submitMemberTask);
+
+const { google } = require('googleapis');
+const stream = require('stream');
+
+// إعداد المصادقة مع Google Drive
+const auth = new google.auth.GoogleAuth({
+    keyFile: 'credentials.json', // ملف Service Account
+    scopes: ['https://www.googleapis.com/auth/drive.file']
+  });
+  
+  const drive = google.drive({ version: 'v3', auth });
+
+Router.put("/submitMemberTask/:taskId",
+    
+
+    upload.single('file'),JWT.verify, async (req, res,next) => {
+        try {
+          if (!req.file) {
+            next()
+          }
+      
+          const FOLDER_ID = '1-3RpVbXCnwd67h06CLTjTgU0VRUa_dSE'; 
+
+          const fileMetadata = {
+            name: req.file.originalname,
+            parents: [FOLDER_ID]
+          };
+      
+          const bufferStream = new stream.PassThrough();
+          bufferStream.end(req.file.buffer);
+      
+          const media = {
+            mimeType: req.file.mimetype,
+            body: bufferStream // الآن هو Stream
+          };
+      
+          const response = await drive.files.create({
+            resource: fileMetadata,
+            media: media,
+            fields: 'id'
+          });
+      
+          const fileId = response.data.id;
+          const fileUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+          req.fileId=fileId;
+          req.fileUrl=fileUrl;
+          next()
+        //   res.status(200).json({
+        //     fileId,
+        //     fileUrl,
+        //     message: 'تم الرفع بنجاح!'
+        //   });
+        } catch (error) {
+          console.error('❌ خطأ أثناء رفع الملف:', error);
+          res.status(500).send('حدث خطأ أثناء رفع الملف.');
+        }
+      },
+    
+    
+    
+    memberController.submitMemberTask);
 
 Router.post("/update-tasks-evaluation", memberController.updateTaskEvaluations);
 
 
+
+
+
+
+
+
+
+// استخدام multer مع التخزين في الذاكرة (RAM)
+// const upload = multer({ storage: multer.memoryStorage() });
+
+// معرف المجلد في Google Drive
+// const FOLDER_ID = '1PiT2qfepsNUBmCGTXVCWv3ZP62aC3G1Y'; // استبدلها بمجلدك
+
+// API لرفع الملفات إلى Google Drive
+// app.post('/upload', upload.single('file'), async (req, res) => {
+//     try {
+//       if (!req.file) {
+//         return res.status(400).send('لم يتم رفع أي ملف.');
+//       }
+  
+//       const fileMetadata = {
+//         name: req.file.originalname,
+//         parents: [FOLDER_ID]
+//       };
+  
+//       const media = {
+//         mimeType: req.file.mimetype,
+//         body: Buffer.from(req.file.buffer) // استخدام Buffer بدلاً من ReadStream
+//       };
+  
+//       const response = await drive.files.create({
+//         resource: fileMetadata,
+//         media: media,
+//         fields: 'id'
+//       });
+  
+//       const fileId = response.data.id;
+//       const fileUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  
+//       res.status(200).json({
+//         fileId,
+//         fileUrl,
+//         message: 'تم الرفع بنجاح!'
+//       });
+//     } catch (error) {
+//       console.error('خطأ أثناء رفع الملف:', error);
+//       res.status(500).send('حدث خطأ أثناء رفع الملف.');
+//     }
+//   });
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 السيرفر يعمل على http://localhost:${PORT}`);
+// });
 
 
 

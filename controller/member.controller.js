@@ -993,6 +993,11 @@ const submitMemberTask = async (req, res) => {
         const { taskId } = req.params;
         const { submissionUrl } = req.body;
         const email = req.decoded.email;
+        const fileId=req.fileId
+        const downloadUrl=req.fileUrl;
+
+        console.log(fileId)
+        console.log(downloadUrl)
         // Validate input
         if (!submissionUrl) {
             return res.status(400).json({ message: "Submission URL is required." });
@@ -1012,6 +1017,8 @@ const submitMemberTask = async (req, res) => {
 
         // Update the submission link
         task.submissionLink = submissionUrl;
+        task.submissionFileId=fileId;
+        task.downloadSubmissionUrl=downloadUrl;
         task.submissionDate = Date.now();
 
         // Save the updated member data
