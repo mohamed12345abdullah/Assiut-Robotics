@@ -181,7 +181,7 @@ Router.put("/submitMemberTask/:taskId",
     upload.single('file'),JWT.verify, async (req, res,next) => {
         try {
           if (!req.file) {
-            next()
+            return next()
           }
       
           const FOLDER_ID = '1-3RpVbXCnwd67h06CLTjTgU0VRUa_dSE'; 
