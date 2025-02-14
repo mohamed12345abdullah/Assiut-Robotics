@@ -1034,7 +1034,7 @@ const submitMemberTask = async (req, res) => {
 
 
 const updateTaskEvaluations = asyncWrapper(async (req, res) => {
-    const { month, memberId, socialScore, behaviorScore, interactionScore } = req.body;
+    const {month, memberId, socialScore, behaviorScore, interactionScore} = req.body;
 
     // Validate inputs
     if (!memberId) {
@@ -1069,9 +1069,9 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
             member: memberId // Ensure tasks belong to the specified member
         });
 
-        if (tasks.length === 0) {
-            return res.status(404).json({ message: "لا توجد مهام لهذا العضو في الشهر المحدد" });
-        }
+        // if (tasks.length === 0) {
+        //     return res.status(404).json({ message: "لا توجد مهام لهذا العضو في الشهر المحدد" });
+        // }
 
         // Update evaluations for each task
         for (const task of tasks) {
