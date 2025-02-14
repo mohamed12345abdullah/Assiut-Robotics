@@ -169,13 +169,13 @@ const stream = require('stream');
 
 // إعداد المصادقة مع Google Drive
 const auth = new google.auth.GoogleAuth({
-    keyFile: 'credentials.json', // ملف Service Account
+    keyFile: __dirname+'/credential.json', // ملف Service Account
     scopes: ['https://www.googleapis.com/auth/drive.file']
   });
   
   const drive = google.drive({ version: 'v3', auth });
 
-Router.put("/submitMemberTask/:taskId",
+Router.put("/submitMemberTask/:taskId",JWT.verify,
     
 
     upload.single('file'), async (req, res,next) => {
