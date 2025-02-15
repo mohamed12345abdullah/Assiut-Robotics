@@ -1060,13 +1060,13 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
 
     try {
         // Find the member
-        const member = await member.findById(memberId);
-        if (!member) {
+        const Member = await member.findById(memberId);
+        if (!Member) {
             return res.status(404).json({ message: "العضو غير موجود" });
         }
 
         // Check if the HR evaluation for the month already exists
-        let hrEvaluation = member.hr_rate.find(rate => rate.month === month);
+        let hrEvaluation = Member.hr_rate.find(rate => rate.month === month);
 
         if (!hrEvaluation) {
             // If it doesn't exist, create a new one
@@ -1077,7 +1077,7 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
                 behaviorScore,
                 interactionScore
             };
-            member.hr_rate.push(hrEvaluation);
+            Member.hr_rate.push(hrEvaluation);
         } else {
             // If it exists, update the scores
             hrEvaluation.socialScore = socialScore;
@@ -1086,7 +1086,7 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
         }
 
         // Save the updated member
-        await member.save();
+        await Member.save();
 
         res.json({ message: "تم تحديث تقييمات HR بنجاح" });
     } catch (error) {
