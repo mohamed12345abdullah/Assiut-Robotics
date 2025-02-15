@@ -64,12 +64,32 @@ const memberTaskSchema = new mongoose.Schema({
 
   },
   rate: Number,
-  points: Number,
-
+  points: Number, 
 });
 
 
-
+const hrRateSchema = new mongoose.Schema({
+  month: {
+    type: String,
+    required: [true, "month is required"]
+  },
+  memberId: {
+    type: String,
+    required: [true, "member ID is required"]
+  },
+  socialScore: {
+    type: Number,
+    default: 0,
+  },
+  behaviorScore: {
+    type: Number,
+    default: 0,
+  },
+  interactionScore: {
+    type: Number,
+    default: 0,
+  },
+});
 
 
 const memberSchema = new mongoose.Schema({
@@ -148,7 +168,8 @@ const memberSchema = new mongoose.Schema({
     },
   ],
 
-  tasks: [memberTaskSchema]
+  tasks: [memberTaskSchema],
+  hr_rate: [hrRateSchema],
 })
 
 const member = mongoose.model('Member', memberSchema);

@@ -1034,7 +1034,7 @@ const submitMemberTask = async (req, res) => {
 
 
 const updateTaskEvaluations = asyncWrapper(async (req, res) => {
-    const {month, memberId, socialScore, behaviorScore, interactionScore} = req.body;
+    const { month, memberId, socialScore, behaviorScore, interactionScore } = req.body;
 
     // Validate inputs
     if (!memberId) {
@@ -1059,48 +1059,40 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
     }
 
     try {
-        // Find tasks for the given month
-        const startDate = new Date(`${month}-01`);
-        const endDate = new Date(new Date(`${month}-01`).setMonth(startDate.getMonth() + 1) - 1); // Last day of the month
-
-        const tasks = await Task.find({
-            startDate: { $gte: startDate },
-            deadline: { $lte: endDate },
-            member: memberId // Ensure tasks belong to the specified member
-        });
-
-        // if (tasks.length === 0) {
-        //     return res.status(404).json({ message: "لا توجد مهام لهذا العضو في الشهر المحدد" });
-        // }
-
-        // Update evaluations for each task
-        for (const task of tasks) {
-            const taskPoints = task.score || 0; // Default to 0 if score is missing
-
-            // Calculate evaluations based on weights
-            const socialEvaluation = (socialScore / 100) * (0.1 * taskPoints);
-            const behaviorEvaluation = (behaviorScore / 100) * (0.1 * taskPoints);
-            const interactionEvaluation = (interactionScore / 100) * (0.1 * taskPoints);
-
-            // Calculate total evaluation
-            const totalEvaluation =
-                (task.headEvaluation || 0) * 0.5 + // Default to 0 if headEvaluation is missing
-                (task.deadlineEvaluation || 0) * 0.2 + // Default to 0 if deadlineEvaluation is missing
-                socialEvaluation +
-                behaviorEvaluation +
-                interactionEvaluation;
-
-            // Update task evaluation
-            task.evaluation = totalEvaluation;
-            await task.save();
+        // Find the member
+        const member = await member.findById(memberId);
+        if (!member) {
+            return res.status(404).json({ message: "العضو غير موجود" });
         }
 
-        res.json({ message: "تم تحديث التقييمات بنجاح" });
+        // Check if the HR evaluation for the month already exists
+        let hrEvaluation = member.hr_rate.find(rate => rate.month === month);
+
+        if (!hrEvaluation) {
+            // If it doesn't exist, create a new one
+            hrEvaluation = {
+                month,
+                memberId,
+                socialScore,
+                behaviorScore,
+                interactionScore
+            };
+            member.hr_rate.push(hrEvaluation);
+        } else {
+            // If it exists, update the scores
+            hrEvaluation.socialScore = socialScore;
+            hrEvaluation.behaviorScore = behaviorScore;
+            hrEvaluation.interactionScore = interactionScore;
+        }
+
+        // Save the updated member
+        await member.save();
+
+        res.json({ message: "تم تحديث تقييمات HR بنجاح" });
     } catch (error) {
         console.error("حدث خطأ أثناء تحديث التقييمات:", error);
         res.status(500).json({ message: "حدث خطأ أثناء تحديث التقييمات" });
     }
-
 });
 
 
