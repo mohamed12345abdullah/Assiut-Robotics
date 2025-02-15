@@ -1091,7 +1091,7 @@ const updateTaskEvaluations = asyncWrapper(async (req, res) => {
         res.json({ message: "تم تحديث تقييمات HR بنجاح" });
     } catch (error) {
         console.error("حدث خطأ أثناء تحديث التقييمات:", error);
-        res.status(500).json({ message: "حدث خطأ أثناء تحديث التقييمات" });
+        res.status(500).json({ message: error.message});
     }
 });
 
