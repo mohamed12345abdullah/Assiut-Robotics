@@ -9,7 +9,7 @@ module.exports = async (param) => {
     // service:"gmail",
     auth: {
       user: "assiutrobotics@gmail.com",
-      pass: "ofhs ofew ulmg kkzq",
+      pass: "pxtp hvdg qrut faht",
     },
   });
 
